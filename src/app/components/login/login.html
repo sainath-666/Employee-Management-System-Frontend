@@ -1,0 +1,48 @@
+<div class="login-container">
+  <div class="login-card mat-elevation-z8">
+    <h1 class="login-title">Sign In</h1>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input
+          matInput
+          type="email"
+          formControlName="email"
+          placeholder="Enter your email"
+        />
+        <mat-error *ngIf="loginForm.get('email')?.invalid">
+          {{ getErrorMessage("email") }}
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Password</mat-label>
+        <input
+          matInput
+          type="password"
+          formControlName="password"
+          placeholder="Enter your password"
+        />
+        <mat-error *ngIf="loginForm.get('password')?.invalid">
+          {{ getErrorMessage("password") }}
+        </mat-error>
+      </mat-form-field>
+
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
+        [disabled]="loginForm.invalid || isLoading"
+        class="login-button"
+      >
+        <mat-spinner
+          *ngIf="isLoading"
+          [diameter]="20"
+          class="spinner"
+        ></mat-spinner>
+        <span *ngIf="!isLoading">Sign In</span>
+      </button>
+    </form>
+  </div>
+</div>
