@@ -4,10 +4,12 @@ import { NavbarComponent } from './components/navbar/navbar';
 
 @Component({
   selector: 'app-root',
+
+  template: `<router-outlet></router-outlet>`,
+
   imports: [RouterOutlet, NavbarComponent],
-  templateUrl: './app.html',
   styleUrl: './app.css'
+
 })
 export class App {
-  protected readonly title = signal('Employee-Management-System-Frontend');
 }

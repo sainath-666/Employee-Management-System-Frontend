@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
 import { jwtDecode } from 'jwt-decode';
 
 interface DecodedToken {
@@ -31,13 +30,9 @@ export class AuthService {
     localStorage.setItem('token', token);
   }
 
-
-  // Get the stored token
-
   getToken(): string | null {
     return localStorage.getItem('token');
   }
-
 
   logout(): void {
     localStorage.removeItem('token');
@@ -115,5 +110,4 @@ export class AuthService {
   isEmployee(): boolean {
     return this.hasRole(2);
   }
-
 }
