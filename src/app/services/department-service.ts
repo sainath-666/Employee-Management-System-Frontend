@@ -9,7 +9,7 @@ export interface Department {
   status: boolean;
   description?: string;
   createdBy?: string | null;
-  createdDateTime?: string;
+  createdDateTime?: string; 
   updatedBy?: string | null;
   updatedDateTime?: string | null;
 }
@@ -46,4 +46,6 @@ export class DepartmentService {
   deleteDepartment(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
+
 }
+

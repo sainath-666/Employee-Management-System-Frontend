@@ -1,0 +1,130 @@
+<nav class="bg-white border-b border-gray-200">
+    <!-- Login page navbar -->
+    <div class="container mx-auto px-4 py-3" *ngIf="isLoginPage">
+        <div class="flex items-center justify-center space-x-4">
+            <img [src]="companyLogoUrl" alt="Company Logo" 
+                class="h-12 w-12 rounded-full shadow-md">
+            <div class="text-2xl font-bold text-gray-800">{{ companyName }}</div>
+        </div>
+    </div>
+
+    <!-- Dashboard navbar -->
+    <div class="container mx-auto px-4 py-2" *ngIf="!isLoginPage">
+        <div class="flex justify-between items-center">
+            <!-- Left side - Logo and Company Name -->
+            <div class="flex items-center space-x-4">
+                <img [src]="companyLogoUrl" alt="Company Logo" 
+                    class="h-10 w-10 rounded-full shadow-md">
+                <span class="text-xl font-semibold text-gray-800">{{ companyName }}</span>
+            </div>
+
+            <!-- Center - Navigation -->
+            <div class="flex items-center space-x-3">
+                <!-- Common Dashboard link for all users -->
+                <a href="/dashboard" 
+                   class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center space-x-1">
+                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                   </svg>
+                   <span>Dashboard</span>
+                </a>
+
+                <!-- Employee Section -->
+                <ng-container *ngIf="isEmployee()">
+                    <div class="h-6 w-px bg-gray-200"></div>
+                    <a href="/leave-form" 
+                       class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
+                        Apply Leave
+                    </a>
+                    <a href="/profile" 
+                       class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
+                        My Profile
+                    </a>
+                    <a href="/payslips" 
+                       class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
+                        Payslips
+                    </a>
+                </ng-container>
+
+                <!-- HR Section -->
+                <ng-container *ngIf="isHR()">
+                    <div class="h-6 w-px bg-gray-200"></div>
+                    <a href="/employees" 
+                       class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
+                        Employees
+                    </a>
+                    <a href="/departments" 
+                       class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
+                        Departments
+                    </a>
+                    <div class="h-6 w-px bg-gray-200"></div>
+                    <div class="flex items-center space-x-3">
+                        <a href="/leave-requests" 
+                           class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
+                            Leave Management
+                        </a>
+                        <a href="/payroll" 
+                           class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
+                            Payroll
+                        </a>
+                    </div>
+                </ng-container>
+
+                <!-- Admin Section -->
+                <ng-container *ngIf="isAdmin()">
+                    <div class="h-6 w-px bg-gray-200"></div>
+                    <div class="flex items-center space-x-3">
+                        <a href="/employees" 
+                           class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
+                            Employees
+                        </a>
+                        <a href="/departments" 
+                           class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
+                            Departments
+                        </a>
+                    </div>
+                    <div class="h-6 w-px bg-gray-200"></div>
+                    <div class="flex items-center space-x-3">
+                        <a href="/users" 
+                           class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
+                            Users
+                        </a>
+                        <a href="/reports" 
+                           class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
+                            Reports
+                        </a>
+                        <a href="/settings" 
+                           class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
+                            Settings
+                        </a>
+                    </div>
+                </ng-container>
+            </div>
+
+            <!-- Right side - User Profile and Logout -->
+            <div class="flex items-center space-x-6">
+                <!-- User Profile -->
+                <div class="flex items-center space-x-3">
+                    <img [src]="userPhotoUrl" alt="User Photo" 
+                         class="h-8 w-8 rounded-full border border-gray-200">
+                    <div class="flex flex-col">
+                        <span class="text-sm font-medium text-gray-700">{{ userName }}</span>
+                        <span class="text-xs text-gray-500">Role: {{ userRole }}</span>
+                    </div>
+                </div>
+                
+                <!-- Role Switcher (for testing) -->
+                <button (click)="switchRole()" 
+                        class="px-3 py-1 text-sm text-blue-600 border border-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200">
+                    Switch Role
+                </button>
+
+                <!-- Logout Button -->
+                <button (click)="logout()" 
+                        class="px-4 py-2 text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors duration-200">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>

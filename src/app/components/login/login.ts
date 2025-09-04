@@ -6,22 +6,31 @@ import {
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth-service';
+
+
+import { NavbarComponent } from '../navbar/navbar';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, CommonModule],
+
   templateUrl: './login.html',
-  styleUrl: './login.css',
+  styleUrls: ['./login.css'],
+  standalone: true,
+  imports: [ReactiveFormsModule, CommonModule, NavbarComponent],
+
 })
 export class Login {
   loginForm: FormGroup;
   errorMessage: string = '';
 
+
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+
     private router: Router
   ) {
     this.loginForm = this.fb.group({
@@ -30,28 +39,44 @@ export class Login {
     });
   }
 
-  onSubmit() {
-    if (this.loginForm.valid) {
-      this.authService.login(this.loginForm.value).subscribe({
-        next: (response) => {
-          if (response && response.token) {
-            this.authService.setToken(response.token);
-            this.router.navigate(['/empform']);
-          }
-        },
-        error: (error) => {
-          this.errorMessage =
-            error.error?.message || 'Login failed. Please try again.';
-        },
-      });
-    } else {
-      this.markFormGroupTouched(this.loginForm);
-    }
-  }
 
-  private markFormGroupTouched(formGroup: FormGroup) {
-    Object.values(formGroup.controls).forEach((control) => {
-      control.markAsTouched();
+  onSubmit(): void {
+
+    if (this.loginForm && !this.loginForm.valid) {
+      Object.keys(this.loginForm.controls).forEach((key) => {
+        const control = this.loginForm.get(key);
+        if (control) {
+          control.markAsTouched();
+        }
+      });
+      this.errorMessage = 'Please fill in all required fields correctly';
+      return;
+    }
+
+    this.authService.login(this.loginForm.value).subscribe({
+      next: (response: any) => {
+        if (response && response.token) {
+          this.authService.setToken(response.token);
+          const redirectRoute = this.authService.getRoleBasedRoute();
+          console.log('Redirecting to:', redirectRoute);
+          this.router
+            .navigate([redirectRoute])
+            .then(() => {
+              console.log('Navigation complete');
+            })
+            .catch((err) => {
+              console.error('Navigation error:', err);
+            });
+        } else {
+          this.errorMessage = 'Invalid response from server';
+        }
+      },
+      error: (error: any) => {
+        this.errorMessage = error.message || 'An error occurred during login';
+        console.error('Login error:', error);
+      },
+
     });
   }
 }
+

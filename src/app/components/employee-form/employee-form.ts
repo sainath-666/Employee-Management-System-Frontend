@@ -29,13 +29,16 @@ export class EmployeeFormComponent implements OnInit, OnChanges {
   selectedFile: File | null = null;
   previewUrl: string | null = null;
   selectedDepartments: number[] = [];
+
   departmentsControl = new FormControl<string[]>([]);
+
 
   genderOptions = [
     { value: 'Male', label: 'Male' },
     { value: 'Female', label: 'Female' },
     { value: 'Other', label: 'Other' }
   ];
+
 
   constructor(
     private fb: FormBuilder,
@@ -44,6 +47,7 @@ export class EmployeeFormComponent implements OnInit, OnChanges {
     private employeeService: EmployeeService,
     private departmentEmployeeService: DepartmentEmployeeService
   ) {
+
     this.initializeForm();
   }
 
@@ -51,6 +55,7 @@ export class EmployeeFormComponent implements OnInit, OnChanges {
     this.initializeForm();
     this.loadRoles();
     this.loadDepartments();
+
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -197,7 +202,9 @@ export class EmployeeFormComponent implements OnInit, OnChanges {
         gender: this.employee.gender,
         dob: this.employee.dob ? new Date(this.employee.dob).toISOString().split('T')[0] : '',
         roleId: this.employee.roleId,
+
         // password: '',
+
         status: this.employee.status ?? true
       });
 
@@ -209,26 +216,33 @@ export class EmployeeFormComponent implements OnInit, OnChanges {
     }
   }
 
+
   onFileSelected(event: Event): void {
     const target = event.target as HTMLInputElement;
     if (target.files && target.files.length > 0) {
       const file = target.files[0];
+
       
       // Validate file type
+
       if (!file.type.startsWith('image/')) {
         alert('Please select a valid image file');
         return;
       }
+
       
       // Validate file size (2MB limit)
+
       if (file.size > 10 * 1024 * 1024) {
         alert('File size should not exceed 10MB');
         return;
       }
 
       this.selectedFile = file;
+
       
       // Create preview
+
       const reader = new FileReader();
       reader.onload = (e) => {
         this.previewUrl = e.target?.result as string;
@@ -466,11 +480,11 @@ toggleSelectAll(event: Event): void {
     });
   }
 
+  // ---------------- Error Helpers ----------------
   getFieldError(fieldName: string): string {
     const field = this.employeeForm.get(fieldName);
     if (field?.errors && field.touched) {
       const errors = field.errors;
-      
       if (errors['required']) return `${this.getFieldLabel(fieldName)} is required`;
       if (errors['email']) return 'Please enter a valid email address';
       if (errors['pattern']) {
@@ -485,7 +499,9 @@ toggleSelectAll(event: Event): void {
       }
       if (errors['maxLength']) return `${this.getFieldLabel(fieldName)} is too long`;
       if (errors['minLength']) return `${this.getFieldLabel(fieldName)} is too short`;
+
       if (errors['invalidRole']) return 'Please select a valid role';
+
     }
     return '';
   }
@@ -508,4 +524,6 @@ toggleSelectAll(event: Event): void {
     const field = this.employeeForm.get(fieldName);
     return !!(field?.invalid && field.touched);
   }
+
 }
+

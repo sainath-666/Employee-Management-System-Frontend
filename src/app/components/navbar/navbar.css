@@ -1,0 +1,11 @@
+.nav-link {
+    @apply px-3 py-2 rounded-md text-sm font-medium;
+}
+
+.nav-link:hover {
+    @apply bg-gray-700 text-white;
+}
+
+.active-link {
+    @apply bg-gray-900 text-white;
+}
