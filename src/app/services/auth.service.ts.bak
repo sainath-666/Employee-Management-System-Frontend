@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
-
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
 import { jwtDecode } from 'jwt-decode';
 
 interface DecodedToken {
@@ -25,7 +23,6 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   login(credentials: { email: string; password: string }): Observable<any> {
-
     return this.http.post(`${this.baseUrl}/login`, credentials);
   }
 
@@ -33,26 +30,17 @@ export class AuthService {
     localStorage.setItem('token', token);
   }
 
-
-
-  // Get the stored token
-
   getToken(): string | null {
     return localStorage.getItem('token');
   }
-
-
 
   logout(): void {
     localStorage.removeItem('token');
   }
 
-
-
   isLoggedIn(): boolean {
     return !!this.getToken();
   }
-
 
   private decodeToken(): DecodedToken | null {
     const token = this.getToken();
@@ -60,18 +48,16 @@ export class AuthService {
       console.log('No token found in storage');
       return null;
     }
-
+    
     try {
       const decoded = jwtDecode<DecodedToken>(token);
       console.log('Successfully decoded token:', decoded);
       return decoded;
     } catch (error) {
       console.error('Error decoding token:', error);
-
       return null;
     }
   }
-
 
   getRoleId(): string | null {
     const decodedToken = this.decodeToken();
@@ -86,7 +72,7 @@ export class AuthService {
   getRoleBasedRoute(): string {
     const roleId = this.getRoleId();
     console.log('Getting route for role ID:', roleId);
-
+    
     switch (roleId) {
       case '2':
         console.log('Routing to employee dashboard');
@@ -124,5 +110,4 @@ export class AuthService {
   isEmployee(): boolean {
     return this.hasRole(2);
   }
-
 }
