@@ -1,0 +1,250 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Search and Filters -->
+  <div class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <!-- Search -->
+    <div class="col-span-1 md:col-span-2">
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (input)="onSearch()"
+        placeholder="Search by name, email, or ID"
+        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+
+    <!-- Filters -->
+    <div>
+      <select
+        [(ngModel)]="statusFilter"
+        (change)="onFilterChange()"
+        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="all">All Status</option>
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+    </div>
+
+    <div>
+      <select
+        [(ngModel)]="roleFilter"
+        (change)="onFilterChange()"
+        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="all">All Roles</option>
+        <option value="Developer">Developer</option>
+        <option value="Manager">Manager</option>
+        <option value="HR">HR</option>
+      </select>
+    </div>
+
+    <div>
+      <select
+        [(ngModel)]="genderFilter"
+        (change)="onFilterChange()"
+        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="all">All Genders</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Employee Table -->
+  <div class="overflow-x-auto bg-white rounded-lg shadow">
+    <table class="min-w-full table-auto">
+      <thead class="bg-gray-50">
+        <tr>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Profile
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Employee ID
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Name
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Email
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Mobile
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Role
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Status
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Gender
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr
+          *ngFor="let employee of paginatedEmployees"
+          class="hover:bg-gray-50"
+        >
+          <td class="px-6 py-4 whitespace-nowrap">
+            <img
+              [src]="employee.profilePhoto"
+              [alt]="employee.name"
+              class="h-10 w-10 rounded-full"
+            />
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ employee.empId }}
+          </td>
+          <td
+            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+          >
+            {{ employee.name }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ employee.email }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ employee.mobileNumber }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ employee.role }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span
+              [class]="
+                'px-2 inline-flex text-xs leading-5 font-semibold rounded-full ' +
+                (employee.status === 'Active'
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800')
+              "
+            >
+              {{ employee.status }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ employee.gender }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+            <!-- View Icon -->
+            <button
+              (click)="onView(employee)"
+              class="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 rounded-full transition-colors duration-150"
+              title="View Details"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path
+                  fill-rule="evenodd"
+                  d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+
+            <!-- Edit Icon -->
+            <button
+              (click)="onEdit(employee)"
+              class="inline-flex items-center justify-center w-8 h-8 text-indigo-600 hover:text-indigo-900 bg-indigo-100 hover:bg-indigo-200 rounded-full transition-colors duration-150"
+              title="Edit Employee"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+                />
+              </svg>
+            </button>
+
+            <!-- Delete Icon -->
+            <button
+              (click)="onDelete(employee)"
+              class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 rounded-full transition-colors duration-150"
+              title="Delete Employee"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="mt-4 flex items-center justify-between">
+    <div class="flex items-center space-x-2">
+      <select
+        [(ngModel)]="itemsPerPage"
+        (change)="onFilterChange()"
+        class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option [value]="5">5 per page</option>
+        <option [value]="10">10 per page</option>
+        <option [value]="20">20 per page</option>
+      </select>
+      <span class="text-sm text-gray-500">
+        Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
+        {{ Math.min(currentPage * itemsPerPage, filteredEmployees.length) }} of
+        {{ filteredEmployees.length }} entries
+      </span>
+    </div>
+
+    <div class="flex space-x-2">
+      <button
+        *ngFor="let page of [].constructor(totalPages); let i = index"
+        (click)="onPageChange(i + 1)"
+        [class]="
+          'px-3 py-1 rounded ' +
+          (currentPage === i + 1
+            ? 'bg-blue-500 text-white'
+            : 'bg-gray-200 text-gray-700 hover:bg-gray-300')
+        "
+      >
+        {{ i + 1 }}
+      </button>
+    </div>
+  </div>
+</div>
