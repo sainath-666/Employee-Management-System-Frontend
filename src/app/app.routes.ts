@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+
 import { Login } from './components/login/login';
 import { LeaveForm } from './components/leave-form/leave-form';
 import { PayslipListComponent } from './components/payslip-list/payslip-list';
@@ -33,4 +34,5 @@ export const routes: Routes = [
         component: PayslipForm,
         canActivate: [authGuard]
     }
+
 ];

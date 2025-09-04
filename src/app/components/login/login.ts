@@ -6,6 +6,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+
 import { NavbarComponent } from '../navbar/navbar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -22,9 +23,11 @@ export class Login {
   loginForm: FormGroup;
   errorMessage: string = '';
 
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+
     private router: Router
   ) {
     this.loginForm = this.fb.group({
@@ -34,6 +37,7 @@ export class Login {
   }
 
   onSubmit(): void {
+
     if (this.loginForm && !this.loginForm.valid) {
       Object.keys(this.loginForm.controls).forEach((key) => {
         const control = this.loginForm.get(key);
@@ -67,6 +71,7 @@ export class Login {
         this.errorMessage = error.message || 'An error occurred during login';
         console.error('Login error:', error);
       },
+
     });
   }
 }

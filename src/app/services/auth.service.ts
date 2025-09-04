@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -24,12 +25,14 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   login(credentials: { email: string; password: string }): Observable<any> {
+
     return this.http.post(`${this.baseUrl}/login`, credentials);
   }
 
   setToken(token: string): void {
     localStorage.setItem('token', token);
   }
+
 
 
   // Get the stored token
@@ -39,13 +42,17 @@ export class AuthService {
   }
 
 
+
   logout(): void {
     localStorage.removeItem('token');
   }
 
+
+
   isLoggedIn(): boolean {
     return !!this.getToken();
   }
+
 
   private decodeToken(): DecodedToken | null {
     const token = this.getToken();
@@ -60,9 +67,11 @@ export class AuthService {
       return decoded;
     } catch (error) {
       console.error('Error decoding token:', error);
+
       return null;
     }
   }
+
 
   getRoleId(): string | null {
     const decodedToken = this.decodeToken();
