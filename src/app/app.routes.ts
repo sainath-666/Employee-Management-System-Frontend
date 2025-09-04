@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { Login } from './components/login/login';
+
 
 import { Login } from './components/login/login';
 import { LeaveForm } from './components/leave-form/leave-form';

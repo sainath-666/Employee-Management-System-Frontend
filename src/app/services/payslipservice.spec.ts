@@ -1,18 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 
-import { DepartmentService } from './department-service';
+import { Payslipservice } from './payslipservice';
 
-describe('DepartmentService', () => {
-  let service: DepartmentService;
+describe('Payslipservice', () => {
+  let service: Payslipservice;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(DepartmentService);
+    service = TestBed.inject(Payslipservice);
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
-
 });
-

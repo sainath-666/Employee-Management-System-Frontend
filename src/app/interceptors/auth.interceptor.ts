@@ -1,4 +1,5 @@
 
+
 import { inject } from '@angular/core';
 import {
   HttpRequest,
@@ -13,6 +14,7 @@ export const authInterceptor: HttpInterceptorFn = (
 ) => {
   const authService = inject(AuthService);
   const token = authService.getToken();
+
     
   if (token) {
     // Clone the request and add the authorization header

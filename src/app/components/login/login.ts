@@ -7,6 +7,7 @@ import {
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
+
 import { NavbarComponent } from '../navbar/navbar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -18,10 +19,12 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./login.css'],
   standalone: true,
   imports: [ReactiveFormsModule, CommonModule, NavbarComponent],
+
 })
 export class Login {
   loginForm: FormGroup;
   errorMessage: string = '';
+
 
 
   constructor(
@@ -35,6 +38,7 @@ export class Login {
       password: ['', [Validators.required, Validators.minLength(6)]],
     });
   }
+
 
   onSubmit(): void {
 
@@ -75,3 +79,4 @@ export class Login {
     });
   }
 }
+
