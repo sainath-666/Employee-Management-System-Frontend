@@ -21,13 +21,13 @@ export class RoleGuard implements CanActivate {
       const actualRole = this.authService.getUserRole();
       switch (actualRole) {
         case 10:
-          this.router.navigate(['/admin-dashboard']);
+          this.router.navigate(['/dashboard/admin']);
           break;
         case 9:
-          this.router.navigate(['/hr-dashboard']);
+          this.router.navigate(['/dashboard/hr']);
           break;
         case 2:
-          this.router.navigate(['/employee-dashboard']);
+          this.router.navigate(['/dashboard/employee']);
           break;
         default:
           this.router.navigate(['/login']);

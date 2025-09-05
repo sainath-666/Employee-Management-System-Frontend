@@ -25,7 +25,6 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   login(credentials: { email: string; password: string }): Observable<any> {
-
     return this.http.post(`${this.baseUrl}/login`, credentials);
   }
 
@@ -33,26 +32,33 @@ export class AuthService {
     localStorage.setItem('token', token);
   }
 
-
-
   // Get the stored token
 
   getToken(): string | null {
     return localStorage.getItem('token');
   }
 
-
-
   logout(): void {
     localStorage.removeItem('token');
   }
 
-
+  getCurrentEmployeeId(): number | null {
+    const token = this.getToken();
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token) as DecodedToken;
+        return parseInt(decodedToken.nameid, 10);
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        return null;
+      }
+    }
+    return null;
+  }
 
   isLoggedIn(): boolean {
     return !!this.getToken();
   }
-
 
   private decodeToken(): DecodedToken | null {
     const token = this.getToken();
@@ -72,7 +78,6 @@ export class AuthService {
     }
   }
 
-
   getRoleId(): string | null {
     const decodedToken = this.decodeToken();
     if (decodedToken) {
@@ -89,14 +94,10 @@ export class AuthService {
 
     switch (roleId) {
       case '2':
-        console.log('Routing to employee dashboard');
-        return '/roleid2';
       case '9':
-        console.log('Routing to HR dashboard');
-        return '/roleid9';
       case '10':
-        console.log('Routing to admin dashboard');
-        return '/roleid10';
+        console.log('Routing to dashboard');
+        return '/dashboard';
       default:
         console.log('No matching role, redirecting to login');
         return '/login';
@@ -124,5 +125,4 @@ export class AuthService {
   isEmployee(): boolean {
     return this.hasRole(2);
   }
-
 }

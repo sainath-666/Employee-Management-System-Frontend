@@ -28,7 +28,7 @@ import { Status, StatusLabel } from '../../models/status.enum';
   templateUrl: './leave-management.html',
   styleUrls: ['./leave-management.css'],
 })
-export class LeaveManagementComponent implements OnInit {
+export class LeaveManagement implements OnInit {
   Status = Status; // Make Status enum available in template
 
   displayedColumns: string[] = [

@@ -1,41 +1,26 @@
 import { Routes } from '@angular/router';
 import { Login } from './components/login/login';
-
-
-import { Login } from './components/login/login';
-import { LeaveForm } from './components/leave-form/leave-form';
-import { PayslipListComponent } from './components/payslip-list/payslip-list';
-import { PayslipForm } from './components/payslip-form/payslip-form';
+import { Dashboard } from './components/dashboard/dashboard';
 import { authGuard } from './guards/auth.guard';
+import { LeaveForm } from './components/leave-form/leave-form';
+import { PayslipList } from './components/payslip-list/payslip-list';
+import { EmployeeForm } from './components/employee-form/employee-form';
+import { LeaveManagement } from './components/leave-management/leave-management';
+import { PayslipForm } from './components/payslip-form/payslip-form';
+import { DepartmentForm } from './components/department-form/department-form';
+import { Navbar } from './components/navbar/navbar';
 
 export const routes: Routes = [
-    { path: '', redirectTo: 'payslips', pathMatch: 'full' },
-    { path: 'login', component: Login },
-    { 
-        path: 'leave-form', 
-        component: LeaveForm,
-        canActivate: [authGuard]
-    },
-    { 
-        path: 'payslips', 
-        component: PayslipListComponent,
-        canActivate: [authGuard]
-    },
-    { 
-        path: 'payslips/new', 
-        component: PayslipForm,
-        canActivate: [authGuard]
-    },
-    { 
-        path: 'payslips/generate', 
-        component: PayslipForm,
-        canActivate: [authGuard]
-    },
-    { 
-        path: 'payslips/:id/edit', 
-        component: PayslipForm,
-        canActivate: [authGuard]
-    }
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'login', component: Login },
+  { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
+  { path: 'leave-form', component: LeaveForm, canActivate: [authGuard] },
+  { path: 'payslip-list', component: PayslipList, canActivate: [authGuard] },
+  { path: 'employee-form', component: EmployeeForm, canActivate: [authGuard] },
+  { path: 'leave-management', component:LeaveManagement , canActivate: [authGuard] },
+  { path: 'payslip-form', component: PayslipForm, canActivate: [authGuard] },
+  { path: 'department-form', component: DepartmentForm, canActivate: [authGuard ] },
 
+  {path: 'reddy' , component: Navbar}
 
 ];
