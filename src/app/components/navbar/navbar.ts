@@ -1,51 +1,41 @@
-import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AfterViewInit, Component, ElementRef } from '@angular/core';
 
 @Component({
   selector: 'app-navbar',
-  templateUrl: './navbar.html',
+  standalone: true,
   imports: [CommonModule],
-  standalone: true
+  templateUrl: './navbar.html',
+
 })
-export class NavbarComponent {
-  @Input() isLoginPage: boolean = false;
-  
-  // Company information
-  companyName: string = 'Employee Management System';
-  companyLogoUrl: string = 'assets/images/company-logo.png';
-  
-  // User information
-  userName: string = 'John Doe';
-  userPhotoUrl: string = 'assets/images/default-user.png';
-  userRole: 'EMPLOYEE' | 'HR' | 'ADMIN' = 'EMPLOYEE'; // Default to EMPLOYEE
+export class Navbar implements AfterViewInit {
 
-  constructor() {
-    // For testing purposes, you can change the role here
-    this.userRole = 'HR'; // Try 'EMPLOYEE', 'HR', or 'ADMIN'
+  constructor(private el: ElementRef) {}
+
+  ngAfterViewInit(): void {
+    // Initialize sidebar in closed state
+    const sidebar = this.el.nativeElement.querySelector('#mobile-sidebar') as HTMLElement;
+    if (sidebar) {
+      sidebar.classList.add('-translate-x-full');
+    }
   }
 
-  // Switch role (for testing)
-  switchRole() {
-    if (this.userRole === 'EMPLOYEE') this.userRole = 'HR';
-    else if (this.userRole === 'HR') this.userRole = 'ADMIN';
-    else this.userRole = 'EMPLOYEE';
+  openSidebar(): void {
+    const sidebar = this.el.nativeElement.querySelector('#mobile-sidebar') as HTMLElement;
+    if (sidebar) {
+      sidebar.classList.remove('-translate-x-full');
+      sidebar.classList.add('translate-x-0');
+    }
   }
 
-  logout() {
-    // TODO: Implement logout logic
-    console.log('Logging out...');
+  closeSidebar(): void {
+    const sidebar = this.el.nativeElement.querySelector('#mobile-sidebar') as HTMLElement;
+    if (sidebar) {
+      sidebar.classList.remove('translate-x-0');
+      sidebar.classList.add('-translate-x-full');
+    }
   }
 
-  // Helper methods to check user role
-  isEmployee(): boolean {
-    return this.userRole === 'EMPLOYEE';
-  }
+  roleid=10;
 
-  isHR(): boolean {
-    return this.userRole === 'HR';
-  }
-
-  isAdmin(): boolean {
-    return this.userRole === 'ADMIN';
-  }
 }

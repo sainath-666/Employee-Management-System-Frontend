@@ -11,7 +11,7 @@ import { RouterModule } from '@angular/router';
   imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './payslip-list.html'
 })
-export class PayslipListComponent implements OnInit {
+export class PayslipList implements OnInit {
   payslips: Payslip[] = [];
   loading: boolean = false;
   error: string | null = null;
@@ -27,7 +27,7 @@ export class PayslipListComponent implements OnInit {
   loadPayslips(): void {
     this.loading = true;
     this.error = null;
-    
+
     this.payslipService.getAllPayslips().subscribe({
       next: (data) => {
         console.log('Raw data from server:', data);

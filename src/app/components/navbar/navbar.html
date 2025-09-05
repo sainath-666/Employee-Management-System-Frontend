@@ -1,130 +1,182 @@
-<nav class="bg-white border-b border-gray-200">
-    <!-- Login page navbar -->
-    <div class="container mx-auto px-4 py-3" *ngIf="isLoginPage">
-        <div class="flex items-center justify-center space-x-4">
-            <img [src]="companyLogoUrl" alt="Company Logo" 
-                class="h-12 w-12 rounded-full shadow-md">
-            <div class="text-2xl font-bold text-gray-800">{{ companyName }}</div>
-        </div>
-    </div>
+<!-- Navigation Bar -->
+<nav class="bg-white shadow-lg border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
 
-    <!-- Dashboard navbar -->
-    <div class="container mx-auto px-4 py-2" *ngIf="!isLoginPage">
-        <div class="flex justify-between items-center">
-            <!-- Left side - Logo and Company Name -->
-            <div class="flex items-center space-x-4">
-                <img [src]="companyLogoUrl" alt="Company Logo" 
-                    class="h-10 w-10 rounded-full shadow-md">
-                <span class="text-xl font-semibold text-gray-800">{{ companyName }}</span>
-            </div>
-
-            <!-- Center - Navigation -->
-            <div class="flex items-center space-x-3">
-                <!-- Common Dashboard link for all users -->
-                <a href="/dashboard" 
-                   class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center space-x-1">
-                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                   </svg>
-                   <span>Dashboard</span>
-                </a>
-
-                <!-- Employee Section -->
-                <ng-container *ngIf="isEmployee()">
-                    <div class="h-6 w-px bg-gray-200"></div>
-                    <a href="/leave-form" 
-                       class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
-                        Apply Leave
-                    </a>
-                    <a href="/profile" 
-                       class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
-                        My Profile
-                    </a>
-                    <a href="/payslips" 
-                       class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
-                        Payslips
-                    </a>
-                </ng-container>
-
-                <!-- HR Section -->
-                <ng-container *ngIf="isHR()">
-                    <div class="h-6 w-px bg-gray-200"></div>
-                    <a href="/employees" 
-                       class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
-                        Employees
-                    </a>
-                    <a href="/departments" 
-                       class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
-                        Departments
-                    </a>
-                    <div class="h-6 w-px bg-gray-200"></div>
-                    <div class="flex items-center space-x-3">
-                        <a href="/leave-requests" 
-                           class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
-                            Leave Management
-                        </a>
-                        <a href="/payroll" 
-                           class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
-                            Payroll
-                        </a>
-                    </div>
-                </ng-container>
-
-                <!-- Admin Section -->
-                <ng-container *ngIf="isAdmin()">
-                    <div class="h-6 w-px bg-gray-200"></div>
-                    <div class="flex items-center space-x-3">
-                        <a href="/employees" 
-                           class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
-                            Employees
-                        </a>
-                        <a href="/departments" 
-                           class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
-                            Departments
-                        </a>
-                    </div>
-                    <div class="h-6 w-px bg-gray-200"></div>
-                    <div class="flex items-center space-x-3">
-                        <a href="/users" 
-                           class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
-                            Users
-                        </a>
-                        <a href="/reports" 
-                           class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
-                            Reports
-                        </a>
-                        <a href="/settings" 
-                           class="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200">
-                            Settings
-                        </a>
-                    </div>
-                </ng-container>
-            </div>
-
-            <!-- Right side - User Profile and Logout -->
-            <div class="flex items-center space-x-6">
-                <!-- User Profile -->
-                <div class="flex items-center space-x-3">
-                    <img [src]="userPhotoUrl" alt="User Photo" 
-                         class="h-8 w-8 rounded-full border border-gray-200">
-                    <div class="flex flex-col">
-                        <span class="text-sm font-medium text-gray-700">{{ userName }}</span>
-                        <span class="text-xs text-gray-500">Role: {{ userRole }}</span>
-                    </div>
+            <!-- Logo Section (Left) -->
+            <div class="flex items-center">
+                <div class="flex-shrink-0 flex items-center">
+                    <svg class="h-8 w-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                    </svg>
+                    <span class="ml-2 text-xl font-bold text-gray-900">CompanyName</span>
                 </div>
-                
-                <!-- Role Switcher (for testing) -->
-                <button (click)="switchRole()" 
-                        class="px-3 py-1 text-sm text-blue-600 border border-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200">
-                    Switch Role
-                </button>
+            </div>
 
-                <!-- Logout Button -->
-                <button (click)="logout()" 
-                        class="px-4 py-2 text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors duration-200">
-                    Logout
+            <!-- Navigation Items (Middle) -->
+            <div class="hidden md:block">
+                <div class="ml-10 flex items-baseline space-x-8">
+
+                    @if(roleid==2){
+                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Dashboard
+                        </a>
+                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Leave Request
+                        </a>
+                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Payslips
+                        </a>
+                    }
+
+                    @if(roleid==9){
+                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                             Dashboard
+                        </a>
+                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Manage Leave
+                        </a>
+                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Payslips
+                        </a>
+                    }
+
+                    @if(roleid==10){
+                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                             Dashboard
+                        </a>
+                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                            Manage Departments
+                        </a>
+                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                            Manage Employees
+                        </a>
+                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Manage Leave
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <!-- Profile and Logout Section (Right) -->
+            <div class="hidden md:block">
+                <div class="ml-4 flex items-center space-x-4">
+
+
+                    <!-- Profile Dropdown -->
+                    <div class="relative">
+                        <button class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full">
+                            <img class="h-8 w-8 rounded-full border-2 border-gray-200"
+                                 src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                                 alt="Profile">
+                            <span class="text-sm font-medium">John Doe</span>
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Logout Button -->
+                    <button class="text-gray-600 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2 hover:bg-red-50 transition-colors duration-200">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile menu button -->
+            <div class="md:hidden">
+                <button (click)="openSidebar()" id="mobile-menu-button" class="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 p-2">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
                 </button>
             </div>
         </div>
     </div>
 </nav>
+
+<!-- Sidebar (Mobile only) -->
+<div id="mobile-sidebar" class="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-50 transform transition-transform duration-300 md:hidden">
+    <div class="p-4">
+
+        <div class="flex items-center justify-between mb-6">
+
+            <span class="text-xl font-bold text-gray-800">Menu</span>
+            <button (click)="closeSidebar()" class="text-gray-500 hover:text-gray-800">
+                ✕
+            </button>
+        </div>
+
+        <!-- Sidebar Nav Links -->
+        <nav class="space-y-4">
+             <!-- Mobile Profile -->
+        <div class="mt-4">
+
+        </div>
+             <div class="relative">
+                        <button class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full">
+                            <img class="h-8 w-8 rounded-full border-2 border-gray-200"
+                                 src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                                 alt="Profile">
+                            <span class="text-sm font-medium">John Doe</span>
+
+                        </button>
+                    </div>
+
+                    @if(roleid==2){
+                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Dashboard
+                        </a>
+                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Leave Request
+                        </a>
+                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Payslips
+                        </a>
+                    }
+
+                    @if(roleid==9){
+                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                             Dashboard
+                        </a>
+                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Manage Leave
+                        </a>
+                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Payslips
+                        </a>
+                    }
+
+                    @if(roleid==10){
+                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                             Dashboard
+                        </a>
+                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                            Manage Departments
+                        </a>
+                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                            Manage Employees
+                        </a>
+                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Manage Leave
+                        </a>
+                    }
+        </nav>
+
+        <!-- Divider -->
+        <hr class="my-4">
+
+
+
+        <!-- Logout -->
+        <button class="mt-4 w-full flex items-center space-x-2 text-red-600 hover:text-red-800 font-medium">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013-3v1"/>
+            </svg>
+            <span>Logout</span>
+        </button>
+    </div>
+</div>

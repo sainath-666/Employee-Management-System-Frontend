@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 
 type DepartmentConfig = {
   capacity: number;
@@ -50,15 +52,25 @@ interface QuickAction {
 export class Dashboard implements OnInit {
   currentUser: UserProfile = {
     id: 1,
-    name: 'John Doe',
-    role: UserRole.ADMIN, // Changed to EMPLOYEE view
+    name: '',
+    role: UserRole.EMPLOYEE,
     departmentId: 1,
-    email: 'john@example.com',
+    email: '',
   };
 
   // Register Chart.js components
-  constructor() {
+  constructor(private authService: AuthService, private router: Router) {
     Chart.register(...registerables);
+
+    // Set the user role based on the role ID from token
+    const roleId = this.authService.getUserRole();
+    if (roleId === 10) {
+      this.currentUser.role = UserRole.ADMIN;
+    } else if (roleId === 9) {
+      this.currentUser.role = UserRole.HR;
+    } else if (roleId === 2) {
+      this.currentUser.role = UserRole.EMPLOYEE;
+    }
   }
 
   // Role-based statistics configuration
@@ -113,11 +125,6 @@ export class Dashboard implements OnInit {
         label: 'Generate Payslips',
         action: () => this.generatePayslips(),
         color: 'bg-green-500 hover:bg-green-600',
-      },
-      {
-        label: 'View Reports',
-        action: () => this.viewReports(),
-        color: 'bg-yellow-500 hover:bg-yellow-600',
       },
     ],
     [UserRole.EMPLOYEE]: [
@@ -400,43 +407,31 @@ export class Dashboard implements OnInit {
 
   // Admin & HR Actions
   private addEmployee(): void {
-    console.log('Navigate to add employee form');
-    // TODO: Implement navigation to add employee form
+    this.router.navigate(['/employee-form']);
   }
 
   private manageDepartments(): void {
-    console.log('Navigate to department management');
-    // TODO: Implement navigation to department management
+    this.router.navigate(['/department-form']);
   }
 
   private generatePayslips(): void {
-    console.log('Navigate to payslip generation');
-    // TODO: Implement payslip generation workflow
+this.router.navigate(['/payslip-form']);
   }
 
   private approveLeaves(): void {
-    console.log('Navigate to leave approval');
-    // TODO: Implement leave approval workflow
-  }
-
-  private viewReports(): void {
-    console.log('Navigate to reports dashboard');
-    // TODO: Implement reports viewing
+this.router.navigate(['/leave-management']);
   }
 
   // Employee Actions
   private applyLeave(): void {
-    console.log('Navigate to leave application');
-    // TODO: Implement leave application form
+    this.router.navigate(['/leave-form']);
   }
 
   private viewMyPayslip(): void {
-    console.log('Navigate to personal payslip view');
-    // TODO: Implement personal payslip viewing
+    this.router.navigate(['/payslip-list']);
   }
 
   private updateProfile(): void {
-    console.log('Navigate to profile update');
-    // TODO: Implement profile update form
+    this.router.navigate(['/employee-form']);
   }
 }

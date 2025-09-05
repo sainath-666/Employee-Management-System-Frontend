@@ -6,26 +6,19 @@ import {
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-
-
-import { NavbarComponent } from '../navbar/navbar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
-
   templateUrl: './login.html',
   styleUrls: ['./login.css'],
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, NavbarComponent],
-
+  imports: [ReactiveFormsModule, CommonModule],
 })
 export class Login {
   loginForm: FormGroup;
   errorMessage: string = '';
-
-
 
   constructor(
     private fb: FormBuilder,
@@ -39,9 +32,7 @@ export class Login {
     });
   }
 
-
   onSubmit(): void {
-
     if (this.loginForm && !this.loginForm.valid) {
       Object.keys(this.loginForm.controls).forEach((key) => {
         const control = this.loginForm.get(key);
@@ -75,8 +66,6 @@ export class Login {
         this.errorMessage = error.message || 'An error occurred during login';
         console.error('Login error:', error);
       },
-
     });
   }
 }
-
