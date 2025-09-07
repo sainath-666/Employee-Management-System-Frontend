@@ -8,8 +8,6 @@ import { EmployeeForm } from './components/employee-form/employee-form';
 import { LeaveManagement } from './components/leave-management/leave-management';
 import { PayslipForm } from './components/payslip-form/payslip-form';
 import { DepartmentForm } from './components/department-form/department-form';
-import { Navbar } from './components/navbar/navbar';
-
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: Login },
@@ -20,7 +18,4 @@ export const routes: Routes = [
   { path: 'leave-management', component:LeaveManagement , canActivate: [authGuard] },
   { path: 'payslip-form', component: PayslipForm, canActivate: [authGuard] },
   { path: 'department-form', component: DepartmentForm, canActivate: [authGuard ] },
-
-  {path: 'reddy' , component: Navbar}
-
 ];
