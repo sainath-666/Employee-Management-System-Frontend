@@ -18,40 +18,40 @@
                 <div class="ml-10 flex items-baseline space-x-8">
 
                     @if(roleid==2){
-                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                         Dashboard
                         </a>
-                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        <a (click)="navigate('/leave-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                         Leave Request
                         </a>
-                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                         <a (click)="navigate('/payslip-list');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                         Payslips
                         </a>
                     }
 
                     @if(roleid==9){
-                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                              Dashboard
                         </a>
-                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                         <a (click)="navigate('/leave-management');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                         Manage Leave
                         </a>
-                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                         <a (click)="navigate('/payslip-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                         Payslips
                         </a>
                     }
 
                     @if(roleid==10){
-                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                              Dashboard
                         </a>
-                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        <a (click)="navigate('/department-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                             Manage Departments
                         </a>
-                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                         <a (click)="navigate('/emp-details');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                             Manage Employees
                         </a>
-                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                         <a (click)="navigate('/leave-management');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                         Manage Leave
                         </a>
                     }
@@ -126,41 +126,41 @@
                         </button>
                     </div>
 
-                    @if(roleid==2){
-                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                   @if(roleid==2){
+                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                         Dashboard
                         </a>
-                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        <a (click)="navigate('/leave-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                         Leave Request
                         </a>
-                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                         <a (click)="navigate('/payslip-list');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                         Payslips
                         </a>
                     }
 
                     @if(roleid==9){
-                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                              Dashboard
                         </a>
-                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                         <a (click)="navigate('/leave-management');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                         Manage Leave
                         </a>
-                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                         <a (click)="navigate('/payslip-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                         Payslips
                         </a>
                     }
 
                     @if(roleid==10){
-                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                              Dashboard
                         </a>
-                        <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        <a (click)="navigate('/department-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                             Manage Departments
                         </a>
-                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                         <a (click)="navigate('/emp-details');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                             Manage Employees
                         </a>
-                         <a href="#" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                         <a (click)="navigate('/leave-management');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                         Manage Leave
                         </a>
                     }

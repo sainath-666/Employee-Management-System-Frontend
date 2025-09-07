@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-navbar',
@@ -10,7 +11,7 @@ import { AfterViewInit, Component, ElementRef } from '@angular/core';
 })
 export class Navbar implements AfterViewInit {
 
-  constructor(private el: ElementRef) {}
+  constructor(private el: ElementRef,private router:Router) {}
 
   ngAfterViewInit(): void {
     // Initialize sidebar in closed state
@@ -18,6 +19,10 @@ export class Navbar implements AfterViewInit {
     if (sidebar) {
       sidebar.classList.add('-translate-x-full');
     }
+  }
+
+  navigate(route: string) {
+    this.router.navigate([route]);
   }
 
   openSidebar(): void {
