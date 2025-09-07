@@ -16,42 +16,44 @@
             <!-- Navigation Items (Middle) -->
             <div class="hidden md:block">
                 <div class="ml-10 flex items-baseline space-x-8">
-                    @if(roleid === 2){
-                        <a routerLink="/dashboard" routerLinkActive="bg-blue-100" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                            Dashboard
+
+
+                    @if(roleid==2){
+                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Dashboard
                         </a>
-                        <a routerLink="/leave-request" routerLinkActive="bg-blue-100" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                            Leave Request
+                        <a (click)="navigate('/leave-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Leave Request
                         </a>
-                        <a routerLink="/payslips" routerLinkActive="bg-blue-100" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                            Payslips
+                         <a (click)="navigate('/payslip-list');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Payslips
                         </a>
                     }
 
-                    @if(roleid === 9){
-                        <a routerLink="/dashboard" routerLinkActive="bg-blue-100" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                            Dashboard
+                    @if(roleid==9){
+                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                             Dashboard
                         </a>
-                        <a routerLink="/leave-management" routerLinkActive="bg-blue-100" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                            Manage Leave
+                         <a (click)="navigate('/leave-management');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Manage Leave
                         </a>
-                        <a routerLink="/payslips" routerLinkActive="bg-blue-100" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                            Payslips
+                         <a (click)="navigate('/payslip-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Payslips
                         </a>
                     }
 
-                    @if(roleid === 10){
-                        <a routerLink="/dashboard" routerLinkActive="bg-blue-100" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                            Dashboard
+                    @if(roleid==10){
+                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                             Dashboard
                         </a>
-                        <a routerLink="/departments" routerLinkActive="bg-blue-100" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        <a (click)="navigate('/department-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                             Manage Departments
                         </a>
-                        <a routerLink="/employees" routerLinkActive="bg-blue-100" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                         <a (click)="navigate('/emp-details');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                             Manage Employees
                         </a>
-                        <a routerLink="/leave-management" routerLinkActive="bg-blue-100" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                            Manage Leave
+                         <a (click)="navigate('/leave-management');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Manage Leave
                         </a>
                     }
                 </div>
@@ -107,56 +109,58 @@
 
         <!-- Sidebar Nav Links -->
         <nav class="space-y-4">
-            <!-- Mobile Profile -->
-            <div class="mt-4">
-                <div class="relative">
-                    <button class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full">
-                        <img class="h-8 w-8 rounded-full border-2 border-gray-200"
-                             src="assets/images/default-user.png"
-                             alt="Profile">
-                        <span class="text-sm font-medium">{{userName}}</span>
-                    </button>
-                </div>
-            </div>
+             <!-- Mobile Profile -->
+        <div class="mt-4">
 
-            @if(roleid === 2){
-                <a routerLink="/dashboard" routerLinkActive="bg-blue-100" class="block text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium">
-                    Dashboard
-                </a>
-                <a routerLink="/leave-request" routerLinkActive="bg-blue-100" class="block text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium">
-                    Leave Request
-                </a>
-                <a routerLink="/payslips" routerLinkActive="bg-blue-100" class="block text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium">
-                    Payslips
-                </a>
-            }
+        </div>
+             <div class="relative">
+                        <button class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full">
+                            <img class="h-8 w-8 rounded-full border-2 border-gray-200"
+                                 src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                                 alt="Profile">
+                            <span class="text-sm font-medium">John Doe</span>
 
-            @if(roleid === 9){
-                <a routerLink="/dashboard" routerLinkActive="bg-blue-100" class="block text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium">
-                    Dashboard
-                </a>
-                <a routerLink="/leave-management" routerLinkActive="bg-blue-100" class="block text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium">
-                    Manage Leave
-                </a>
-                <a routerLink="/payslips" routerLinkActive="bg-blue-100" class="block text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium">
-                    Payslips
-                </a>
-            }
+                        </button>
+                    </div>
 
-            @if(roleid === 10){
-                <a routerLink="/dashboard" routerLinkActive="bg-blue-100" class="block text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium">
-                    Dashboard
-                </a>
-                <a routerLink="/departments" routerLinkActive="bg-blue-100" class="block text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium">
-                    Manage Departments
-                </a>
-                <a routerLink="/employees" routerLinkActive="bg-blue-100" class="block text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium">
-                    Manage Employees
-                </a>
-                <a routerLink="/leave-management" routerLinkActive="bg-blue-100" class="block text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium">
-                    Manage Leave
-                </a>
-            }
+                   @if(roleid==2){
+                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Dashboard
+                        </a>
+                        <a (click)="navigate('/leave-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Leave Request
+                        </a>
+                         <a (click)="navigate('/payslip-list');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Payslips
+                        </a>
+                    }
+
+                    @if(roleid==9){
+                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                             Dashboard
+                        </a>
+                         <a (click)="navigate('/leave-management');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Manage Leave
+                        </a>
+                         <a (click)="navigate('/payslip-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Payslips
+                        </a>
+                    }
+
+                    @if(roleid==10){
+                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                             Dashboard
+                        </a>
+                        <a (click)="navigate('/department-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                            Manage Departments
+                        </a>
+                         <a (click)="navigate('/emp-details');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                            Manage Employees
+                        </a>
+                         <a (click)="navigate('/leave-management');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Manage Leave
+                        </a>
+                    }
         </nav>
 
         <!-- Divider -->

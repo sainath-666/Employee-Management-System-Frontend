@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+
 import { AfterViewInit, Component, ElementRef, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -19,6 +20,7 @@ export class Navbar implements AfterViewInit, OnInit {
     private router: Router
   ) {}
 
+
   ngOnInit(): void {
     const token = this.authService.getToken();
     if (token) {
@@ -26,6 +28,9 @@ export class Navbar implements AfterViewInit, OnInit {
       this.userName = this.authService.getCurrentUserName() || 'User';
     }
   }
+
+  constructor(private el: ElementRef,private router:Router) {}
+
 
   ngAfterViewInit(): void {
     // Initialize sidebar in closed state
@@ -35,6 +40,10 @@ export class Navbar implements AfterViewInit, OnInit {
     if (sidebar) {
       sidebar.classList.add('-translate-x-full');
     }
+  }
+
+  navigate(route: string) {
+    this.router.navigate([route]);
   }
 
   openSidebar(): void {
