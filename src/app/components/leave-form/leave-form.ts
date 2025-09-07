@@ -1,29 +1,42 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { LeaveService } from '../../services/leave.service';
+import { LeaveTypeEnum } from '../../models/leaveTypeEnum';
+import { AuthService } from '../../services/auth.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-leave-form',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [
+    ReactiveFormsModule,
+    CommonModule,
+  ],
   templateUrl: './leave-form.html'
 })
 export class LeaveForm {
   leaveForm: FormGroup;
   minDate: string;
   leaveTypes = [
-    
-    { id: 'sick', name: 'Sick Leave' },
-    { id: 'personal', name: 'Personal Leave' },
-    { id: 'maternity', name: 'Maternity Leave' },
-    { id: 'paternity', name: 'Paternity Leave' },
-    { id: 'bereavement', name: 'Bereavement Leave' },
-    { id: 'unpaid', name: 'Unpaid Leave' }
+    { id: LeaveTypeEnum.Sick, name: 'Sick Leave' },
+    { id: LeaveTypeEnum.Casual, name: 'Casual Leave' },
+    { id: LeaveTypeEnum.Earned, name: 'Earned Leave' },
+    { id: LeaveTypeEnum.Maternity, name: 'Maternity Leave' },
+    { id: LeaveTypeEnum.Paternity, name: 'Paternity Leave' },
+    { id: LeaveTypeEnum.Other, name: 'Other Leave' }
   ];
 
   numberOfDays: number = 0;
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private leaveService: LeaveService,
+    private authService: AuthService,
+    private snackBar: MatSnackBar,
+    private router: Router
+  ) {
     // Get current date in YYYY-MM-DD format for min date validation
     this.minDate = new Date().toISOString().split('T')[0];
     
@@ -78,8 +91,47 @@ export class LeaveForm {
 
   onSubmit() {
     if (this.leaveForm.valid) {
-      console.log('Leave request:', this.leaveForm.value);
-      // TODO: Implement API call to submit leave request
+      const employeeId = this.authService.getCurrentEmployeeId();
+      if (!employeeId) {
+        this.showNotification('User not authenticated. Please login again.', 'error');
+        return;
+      }
+
+      const formValue = this.leaveForm.value;
+      const leaveRequest = {
+        employeeId: employeeId,
+        leaveTypeID: parseInt(formValue.leaveType),
+        startDate: new Date(formValue.startDate).toISOString(),
+        endDate: new Date(formValue.endDate).toISOString(),
+        maxDaysPerYear: this.numberOfDays,
+        reason: formValue.reason,
+        createdBy: employeeId,
+        createdDateTime: new Date().toISOString()
+      };
+
+      console.log('Submitting leave request:', leaveRequest);
+      this.leaveService.createLeaveRequest(leaveRequest).subscribe({
+        next: (response) => {
+          this.showNotification('Leave request submitted successfully', 'success');
+          this.router.navigate(['/leave-management']);
+        },
+        error: (error) => {
+          console.error('Error submitting leave request:', error);
+          this.showNotification(
+            error?.error?.message || 'Failed to submit leave request. Please try again.',
+            'error'
+          );
+        }
+      });
+    } else {
+      this.showNotification('Please fill all required fields correctly', 'error');
     }
+  }
+
+  private showNotification(message: string, type: 'success' | 'error') {
+    this.snackBar.open(message, 'Close', {
+      duration: 5000,
+      panelClass: type === 'error' ? ['error-snackbar'] : ['success-snackbar'],
+    });
   }
 }

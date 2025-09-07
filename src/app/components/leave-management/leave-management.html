@@ -37,9 +37,9 @@
         <tbody>
           @for (request of leaveRequests; track request.id) {
           <tr>
-            <td>{{ request.employeeName }}</td>
-            <td>{{ request.department }}</td>
-            <td class="leave-type">{{ getLeaveTypeLabel(request.type) }}</td>
+            <td>{{ request.employeeId }}</td>
+            <td>{{ request.createdBy }}</td>
+            <td class="leave-type">{{ getLeaveTypeLabel(request.leaveTypeID) }}</td>
             <td>
               <div class="duration">
                 <span class="duration-days">{{
@@ -62,16 +62,16 @@
             <td>
               <span
                 class="status-chip"
-                [class.status-approved]="request.status === Status.Accepted"
-                [class.status-rejected]="request.status === Status.Rejected"
-                [class.status-pending]="request.status === Status.Pending"
+                [class.status-approved]="request.status === StatusEnum.Accepted"
+                [class.status-rejected]="request.status === StatusEnum.Rejected"
+                [class.status-pending]="request.status === StatusEnum.Pending"
               >
                 {{ getStatusLabel(request.status) }}
               </span>
             </td>
             <td>
               <div class="action-buttons">
-                @if (request.status === Status.Pending) {
+                @if (request.status === StatusEnum.Pending) {
                 <button
                   class="btn btn-approve"
                   (click)="approveLeave(request.id)"
@@ -91,19 +91,19 @@
                 } @else {
                 <div
                   class="action-info"
-                  [class.approved-info]="request.status === Status.Accepted"
-                  [class.rejected-info]="request.status === Status.Rejected"
-                  [matTooltip]="request.comments"
+                  [class.approved-info]="request.status === StatusEnum.Accepted"
+                  [class.rejected-info]="request.status === StatusEnum.Rejected"
+                  [matTooltip]="request.reason"
                 >
                   <mat-icon>{{
-                    request.status === Status.Accepted
+                    request.status === StatusEnum.Accepted
                       ? "check_circle"
                       : "cancel"
                   }}</mat-icon>
                   <div class="action-details">
-                    <span class="action-by">{{ request.actionBy }}</span>
+                    <span class="action-by">{{ request.updatedBy || 'N/A' }}</span>
                     <span class="action-date">{{
-                      formatDate(request.actionDate)
+                      formatDate(request.updatedDateTime)
                     }}</span>
                   </div>
                 </div>

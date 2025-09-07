@@ -31,6 +31,7 @@ export class Navbar implements AfterViewInit, OnInit {
 
 
 
+
   ngAfterViewInit(): void {
     // Initialize sidebar in closed state
     const sidebar = this.el.nativeElement.querySelector(
