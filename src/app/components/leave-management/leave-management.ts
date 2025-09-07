@@ -9,8 +9,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { LeaveService, LeaveRequest } from '../../services/leave.service';
 import { AuthService } from '../../services/auth.service';
-import { LeaveType, LeaveTypeLabels } from '../../models/leave-type.enum';
-import { Status, StatusLabel } from '../../models/status.enum';
+import { LeaveTypeEnum } from '../../models/leaveTypeEnum';
+import { StatusEnum } from '../../models/statusEnum';
 
 @Component({
   selector: 'app-leave-management',
@@ -29,7 +29,7 @@ import { Status, StatusLabel } from '../../models/status.enum';
   styleUrls: ['./leave-management.css'],
 })
 export class LeaveManagement implements OnInit {
-  Status = Status; // Make Status enum available in template
+  StatusEnum = StatusEnum; // Make StatusEnum available in template
 
   displayedColumns: string[] = [
     'employeeName',
@@ -64,15 +64,12 @@ export class LeaveManagement implements OnInit {
         console.log('Raw API response:', requests);
 
         this.leaveRequests = requests.map((request) => {
-          const rawType = request.type ?? request.leaveType;
+          const rawType = request.leaveTypeID;
           console.log('Raw leave type:', rawType);
 
           return {
             ...request,
-            type:
-              typeof rawType === 'string'
-                ? parseInt(rawType, 10)
-                : rawType || 1,
+            leaveTypeID: rawType
           };
         });
 
@@ -100,7 +97,7 @@ export class LeaveManagement implements OnInit {
     }
     // Optimistic UI update
     const previousStatus = request.status;
-    request.status = Status.Accepted;
+    request.status = StatusEnum.Accepted;
 
     this.leaveService.updateLeaveStatus(request, 'Approved', currentUserId).subscribe({
       next: (res) => {
@@ -129,7 +126,7 @@ export class LeaveManagement implements OnInit {
     }
     // Optimistic UI update
     const previousStatus = request.status;
-    request.status = Status.Rejected;
+    request.status = StatusEnum.Rejected;
 
     this.leaveService.updateLeaveStatus(request, 'Rejected', currentUserId).subscribe({
       next: (res) => {
@@ -156,7 +153,8 @@ export class LeaveManagement implements OnInit {
     }
   }
 
-  getDuration(start: string, end: string): string {
+  getDuration(start?: string, end?: string): string {
+    if (!start || !end) return 'N/A';
     const startDate = new Date(start);
     const endDate = new Date(end);
     const days =
@@ -177,34 +175,27 @@ export class LeaveManagement implements OnInit {
     });
   }
 
-  getLeaveTypeLabel(type: any): string {
+  getLeaveTypeLabel(type: LeaveTypeEnum | undefined): string {
     if (type === undefined || type === null) {
-      console.log('Leave type is undefined or null');
       return 'Unknown';
     }
 
-    console.log('Leave type received:', type, typeof type);
-
-    // Handle various type formats
-    let typeNumber: number;
-    if (typeof type === 'string') {
-      typeNumber = parseInt(type, 10);
-    } else if (typeof type === 'number') {
-      typeNumber = type;
-    } else {
-      typeNumber = 1; // default to Sick Leave if invalid type
+    switch (type) {
+      case LeaveTypeEnum.Sick:
+        return 'Sick Leave';
+      case LeaveTypeEnum.Casual:
+        return 'Casual Leave';
+      case LeaveTypeEnum.Earned:
+        return 'Earned Leave';
+      case LeaveTypeEnum.Maternity:
+        return 'Maternity Leave';
+      case LeaveTypeEnum.Paternity:
+        return 'Paternity Leave';
+      case LeaveTypeEnum.Other:
+        return 'Other';
+      default:
+        return 'Unknown';
     }
-
-    console.log('Converted type number:', typeNumber);
-
-    // Validate the type number is within enum range
-    if (typeNumber >= 1 && typeNumber <= 6) {
-      const label = LeaveTypeLabels[typeNumber as LeaveType];
-      console.log('Label found:', label);
-      return label;
-    }
-
-    return 'Unknown';
   }
 
   private showNotification(message: string, type: 'success' | 'error'): void {
@@ -214,7 +205,16 @@ export class LeaveManagement implements OnInit {
     });
   }
 
-  getStatusLabel(status: Status): string {
-    return StatusLabel.get(status) || 'Unknown';
+  getStatusLabel(status: StatusEnum): string {
+    switch (status) {
+      case StatusEnum.Pending:
+        return 'Pending';
+      case StatusEnum.Accepted:
+        return 'Accepted';
+      case StatusEnum.Rejected:
+        return 'Rejected';
+      default:
+        return 'Unknown';
+    }
   }
 }

@@ -29,7 +29,7 @@ export class Navbar implements AfterViewInit, OnInit {
     }
   }
 
-  constructor(private el: ElementRef,private router:Router) {}
+ 
 
 
   ngAfterViewInit(): void {
