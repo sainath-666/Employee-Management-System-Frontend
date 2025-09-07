@@ -1,9 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { EmployeeService } from '../../services/employee.service';
+import { Router } from '@angular/router';
 
 interface Employee {
-  empId: string;
+  id: number;
+  employeeCode: string;
   name: string;
   email: string;
   mobileNumber: string;
@@ -21,124 +24,54 @@ interface Employee {
   styleUrl: './employee-details.css',
 })
 export class EmployeeDetails implements OnInit {
-  Math = Math; // Add Math object to use in template
-  employees: Employee[] = [];
-  filteredEmployees: Employee[] = [];
-  searchQuery: string = '';
-  currentPage: number = 1;
-  itemsPerPage: number = 5;
-  statusFilter: string = 'all';
-  roleFilter: string = 'all';
-  genderFilter: string = 'all';
+  protected Math = Math; // Add Math object to use in template
+  protected employees: Employee[] = [];
+  protected filteredEmployees: Employee[] = [];
+  protected searchQuery: string = '';
+  protected currentPage: number = 1;
+  protected itemsPerPage: number = 5;
+  protected statusFilter: string = 'all';
+  protected roleFilter: string = 'all';
+  protected genderFilter: string = 'all';
 
-  ngOnInit() {
-    // Mock data - Replace this with actual API call
-    this.employees = [
-      {
-        empId: 'EMP001',
-        name: 'John Doe',
-        email: 'john.doe@company.com',
-        mobileNumber: '1234567890',
-        profilePhoto: 'https://randomuser.me/api/portraits/men/1.jpg',
-        role: 'Senior Developer',
-        status: 'Active',
-        gender: 'Male',
-      },
-      {
-        empId: 'EMP002',
-        name: 'Sarah Johnson',
-        email: 'sarah.j@company.com',
-        mobileNumber: '9876543210',
-        profilePhoto: 'https://randomuser.me/api/portraits/women/2.jpg',
-        role: 'Project Manager',
-        status: 'Active',
-        gender: 'Female',
-      },
-      {
-        empId: 'EMP003',
-        name: 'Michael Chen',
-        email: 'michael.c@company.com',
-        mobileNumber: '5554443333',
-        profilePhoto: 'https://randomuser.me/api/portraits/men/3.jpg',
-        role: 'Full Stack Developer',
-        status: 'Active',
-        gender: 'Male',
-      },
-      {
-        empId: 'EMP004',
-        name: 'Emily Rodriguez',
-        email: 'emily.r@company.com',
-        mobileNumber: '7778889999',
-        profilePhoto: 'https://randomuser.me/api/portraits/women/4.jpg',
-        role: 'HR Manager',
-        status: 'Active',
-        gender: 'Female',
-      },
-      {
-        empId: 'EMP005',
-        name: 'Alex Turner',
-        email: 'alex.t@company.com',
-        mobileNumber: '3332221111',
-        profilePhoto: 'https://randomuser.me/api/portraits/men/5.jpg',
-        role: 'UI/UX Designer',
-        status: 'Inactive',
-        gender: 'Other',
-      },
-      {
-        empId: 'EMP006',
-        name: 'Lisa Wang',
-        email: 'lisa.w@company.com',
-        mobileNumber: '4445556666',
-        profilePhoto: 'https://randomuser.me/api/portraits/women/6.jpg',
-        role: 'QA Engineer',
-        status: 'Active',
-        gender: 'Female',
-      },
-      {
-        empId: 'EMP007',
-        name: 'James Wilson',
-        email: 'james.w@company.com',
-        mobileNumber: '6667778888',
-        profilePhoto: 'https://randomuser.me/api/portraits/men/7.jpg',
-        role: 'DevOps Engineer',
-        status: 'Inactive',
-        gender: 'Male',
-      },
-      {
-        empId: 'EMP008',
-        name: 'Maria Garcia',
-        email: 'maria.g@company.com',
-        mobileNumber: '8889990000',
-        profilePhoto: 'https://randomuser.me/api/portraits/women/8.jpg',
-        role: 'Backend Developer',
-        status: 'Active',
-        gender: 'Female',
-      },
-      {
-        empId: 'EMP009',
-        name: 'David Kim',
-        email: 'david.k@company.com',
-        mobileNumber: '2223334444',
-        profilePhoto: 'https://randomuser.me/api/portraits/men/9.jpg',
-        role: 'System Administrator',
-        status: 'Active',
-        gender: 'Male',
-      },
-      {
-        empId: 'EMP010',
-        name: 'Rachel Smith',
-        email: 'rachel.s@company.com',
-        mobileNumber: '1112223333',
-        profilePhoto: 'https://randomuser.me/api/portraits/women/10.jpg',
-        role: 'Product Manager',
-        status: 'Inactive',
-        gender: 'Female',
-      },
-    ];
-    this.applyFilters();
+  constructor(
+    private employeeService: EmployeeService,
+    private router: Router
+  ) {}
+
+  viewEmployee(id: number): void {
+    this.router.navigate(['/employee-view'], {
+      queryParams: { id: id },
+    });
   }
 
-  applyFilters() {
+  ngOnInit(): void {
+    this.loadEmployees();
+  }
+
+  loadEmployees(): void {
+    this.employeeService.getAllEmployees().subscribe({
+      next: (data) => {
+        this.employees = data.map((emp) => ({
+          id: emp.id,
+          employeeCode: emp.employeeCode,
+          name: emp.name,
+          email: emp.email,
+          mobileNumber: emp.mobileNumber,
+          profilePhoto: emp.profilePhoto || 'assets/images/default-user.png',
+          role: emp.role,
+          status: emp.status,
+          gender: emp.gender,
+        }));
+        this.applyFilters(); // Apply initial filters
+      },
+      error: (error) => {
+        console.error('Error fetching employees:', error);
+      },
+    });
+  }
+
+  protected applyFilters(): void {
     let filtered = [...this.employees];
 
     // Apply search
@@ -148,7 +81,7 @@ export class EmployeeDetails implements OnInit {
         (emp) =>
           emp.name.toLowerCase().includes(query) ||
           emp.email.toLowerCase().includes(query) ||
-          emp.empId.toLowerCase().includes(query)
+          emp.employeeCode.toLowerCase().includes(query)
       );
     }
 
@@ -170,11 +103,11 @@ export class EmployeeDetails implements OnInit {
     this.filteredEmployees = filtered;
   }
 
-  get totalPages(): number {
+  protected get totalPages(): number {
     return Math.ceil(this.filteredEmployees.length / this.itemsPerPage);
   }
 
-  get paginatedEmployees(): Employee[] {
+  protected get paginatedEmployees(): Employee[] {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     return this.filteredEmployees.slice(
       startIndex,
@@ -182,37 +115,40 @@ export class EmployeeDetails implements OnInit {
     );
   }
 
-  onPageChange(page: number) {
+  protected onPageChange(page: number): void {
     this.currentPage = page;
   }
 
-  onSearch() {
+  protected onSearch(): void {
     this.currentPage = 1;
     this.applyFilters();
   }
 
-  onFilterChange() {
+  protected onFilterChange(): void {
     this.currentPage = 1;
     this.applyFilters();
   }
 
-  onView(employee: Employee) {
-    // TODO: Implement view functionality
-    console.log('View employee:', employee);
-  }
-
-  onEdit(employee: Employee) {
+  protected onEdit(employee: Employee): void {
     // TODO: Implement edit functionality
     console.log('Edit employee:', employee);
   }
 
-  onDelete(employee: Employee) {
+  protected onDelete(employee: Employee): void {
     if (confirm(`Are you sure you want to delete employee ${employee.name}?`)) {
-      // TODO: Implement actual API call to delete
-      this.employees = this.employees.filter(
-        (emp) => emp.empId !== employee.empId
-      );
-      this.applyFilters();
+      this.employeeService
+        .deleteEmployee(parseInt(employee.employeeCode))
+        .subscribe({
+          next: () => {
+            this.employees = this.employees.filter(
+              (emp) => emp.employeeCode !== employee.employeeCode
+            );
+            this.applyFilters();
+          },
+          error: (error) => {
+            console.error('Error deleting employee:', error);
+          },
+        });
     }
   }
 }

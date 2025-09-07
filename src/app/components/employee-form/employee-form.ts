@@ -31,7 +31,6 @@ import { DepartmentEmployeeRequest } from '../../interfaces/departmentemployeere
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './employee-form.html',
-  styleUrls: ['./employee-form.css'],
 })
 export class EmployeeForm implements OnInit, OnChanges {
   @Input() employee: Employee | null = null;
@@ -339,16 +338,31 @@ export class EmployeeForm implements OnInit, OnChanges {
   }
 
   onSubmit(): void {
-    if (this.employeeForm.valid && this.selectedDepartments.length > 0) {
-      if (this.isEditMode && this.employee?.id) {
-        // Update existing employee
-        this.handleUpdateEmployee();
-      } else {
-        // Create new employee
-        this.handleCreateEmployee();
-      }
+    this.markFormGroupTouched();
+
+    if (!this.employeeForm.valid) {
+      console.log('Form Validation Errors:', this.getFormValidationErrors());
+      this.errorMessage = 'Please fill in all required fields correctly.';
+      return;
+    }
+
+    if (this.selectedDepartments.length === 0) {
+      this.errorMessage = 'Please select at least one department.';
+      return;
+    }
+
+    const roleId = this.employeeForm.get('roleId')?.value;
+    if (!roleId) {
+      this.errorMessage = 'Please select a role.';
+      return;
+    }
+
+    if (this.isEditMode && this.employee?.id) {
+      // Update existing employee
+      this.handleUpdateEmployee();
     } else {
-      this.markFormGroupTouched();
+      // Create new employee
+      this.handleCreateEmployee();
     }
   }
 
@@ -371,15 +385,41 @@ export class EmployeeForm implements OnInit, OnChanges {
       },
       error: (error) => {
         console.error('Error creating employee:', error);
-        const raw =
-          error?.error && typeof error.error === 'string' ? error.error : '';
-        if (raw.includes('UNIQUE KEY') || raw.includes('2627')) {
-          this.errorMessage =
-            'Employee code already exists. Please use a different code.';
+        console.log('Error details:', {
+          status: error.status,
+          statusText: error.statusText,
+          error: error.error,
+          message: error.message,
+        });
+
+        if (error.error && typeof error.error === 'object') {
+          // Handle validation errors
+          const validationErrors = [];
+          for (const key in error.error.errors) {
+            validationErrors.push(
+              `${key}: ${error.error.errors[key].join(', ')}`
+            );
+          }
+          if (validationErrors.length > 0) {
+            this.errorMessage = `Validation errors: ${validationErrors.join(
+              '; '
+            )}`;
+          } else {
+            this.errorMessage =
+              error.error.message || 'Error creating employee';
+          }
         } else {
-          this.errorMessage = error.error?.message || 'Error creating employee';
+          const raw =
+            error?.error && typeof error.error === 'string' ? error.error : '';
+          if (raw.includes('UNIQUE KEY') || raw.includes('2627')) {
+            this.errorMessage =
+              'Employee code already exists. Please use a different code.';
+          } else {
+            this.errorMessage =
+              error.error?.message || 'Error creating employee';
+          }
         }
-        setTimeout(() => (this.errorMessage = ''), 3000);
+        setTimeout(() => (this.errorMessage = ''), 5000);
       },
     });
   }
@@ -486,24 +526,53 @@ export class EmployeeForm implements OnInit, OnChanges {
 
   private createFormData(): any {
     const formData = new FormData();
+    const formValues = this.employeeForm.value;
 
-    // Add form fields
-    Object.keys(this.employeeForm.value).forEach((key) => {
-      const value = this.employeeForm.value[key];
-      if (value !== null && value !== '') {
-        formData.append(key, value);
-      }
-    });
+    // Add required fields first
+    formData.append('employeeCode', formValues.employeeCode || '');
+    formData.append('name', formValues.name || '');
+    formData.append('email', formValues.email || '');
+    formData.append('mobileNumber', formValues.mobileNumber || '');
+    formData.append('gender', formValues.gender || '');
+    formData.append('roleId', formValues.roleId?.toString() || '');
+
+    // Add optional fields
+    if (formValues.dob) {
+      formData.append('dob', formValues.dob);
+    }
+
+    // Add status
+    formData.append('status', (formValues.status ?? true).toString());
 
     // Default password as mobile number on create
     if (!this.isEditMode) {
-      const mobile = this.employeeForm.get('mobileNumber')?.value || '';
+      const mobile = formValues.mobileNumber || '';
       if (mobile) {
         formData.append('password', mobile);
       }
     }
 
-    // Add selected departments
+    // Add departments as a JSON string
+    if (this.selectedDepartments && this.selectedDepartments.length > 0) {
+      formData.append(
+        'departmentIds',
+        JSON.stringify(this.selectedDepartments)
+      );
+    }
+
+    // Add profile photo if selected
+    if (this.selectedFile) {
+      formData.append('profilePhoto', this.selectedFile);
+    }
+
+    // Log the data being sent
+    console.log('Form Values:', formValues);
+    console.log('Selected Departments:', this.selectedDepartments);
+
+    // Log each key-value pair in FormData
+    formData.forEach((value, key) => {
+      console.log(`${key}:`, value);
+    }); // Add selected departments
     this.selectedDepartments.forEach((deptId) => {
       formData.append('departmentIds', deptId.toString());
     });
@@ -577,6 +646,36 @@ export class EmployeeForm implements OnInit, OnChanges {
       // password: 'Password'
     };
     return labels[fieldName] || fieldName;
+  }
+
+  private getFormValidationErrors(): string[] {
+    const errors: string[] = [];
+    Object.keys(this.employeeForm.controls).forEach((key) => {
+      const control = this.employeeForm.get(key);
+      if (control?.errors) {
+        Object.keys(control.errors).forEach((errorKey) => {
+          let errorMessage = `${this.getFieldLabel(key)}: `;
+          switch (errorKey) {
+            case 'required':
+              errorMessage += 'This field is required';
+              break;
+            case 'email':
+              errorMessage += 'Invalid email format';
+              break;
+            case 'pattern':
+              errorMessage += 'Invalid format';
+              break;
+            case 'invalidRole':
+              errorMessage += 'Please select a valid role';
+              break;
+            default:
+              errorMessage += 'Invalid value';
+          }
+          errors.push(errorMessage);
+        });
+      }
+    });
+    return errors;
   }
 
   isFieldInvalid(fieldName: string): boolean {
