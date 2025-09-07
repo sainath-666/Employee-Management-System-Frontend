@@ -125,4 +125,13 @@ export class AuthService {
   isEmployee(): boolean {
     return this.hasRole(2);
   }
+
+  getCurrentUserRole(): number {
+    return this.getUserRole();
+  }
+
+  getCurrentUserName(): string {
+    const decodedToken = this.decodeToken();
+    return decodedToken ? decodedToken.unique_name : '';
+  }
 }
