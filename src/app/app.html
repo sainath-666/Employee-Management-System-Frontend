@@ -1,3 +1,5 @@
-
 <app-navbar *ngIf="shouldShowNavbar()"></app-navbar>
-<router-outlet />
+<div class="pt-16">
+  <!-- Add padding-top to account for fixed navbar -->
+  <router-outlet />
+</div>
