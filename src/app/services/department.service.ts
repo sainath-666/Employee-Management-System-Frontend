@@ -7,10 +7,9 @@ export interface Department {
   id: number;
   departmentName: string;
   status: boolean;
-  description?: string;
-  createdBy?: string | null;
+  createdBy?: number | null;
   createdDateTime?: string; 
-  updatedBy?: string | null;
+  updatedBy?: number | null;
   updatedDateTime?: string | null;
 }
 

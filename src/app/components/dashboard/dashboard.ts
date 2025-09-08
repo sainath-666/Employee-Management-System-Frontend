@@ -95,35 +95,20 @@ export class Dashboard implements OnInit {
         color: 'bg-blue-500 hover:bg-blue-600',
       },
       {
-        label: 'Manage Departments',
-        action: () => this.manageDepartments(),
+        label: 'Add Department',
+        action: () => this.addDepartment(),
         color: 'bg-violet-500 hover:bg-violet-600',
-      },
-      {
-        label: 'Generate Payslips',
-        action: () => this.generatePayslips(),
-        color: 'bg-green-500 hover:bg-green-600',
-      },
-      {
-        label: 'Approve Leaves',
-        action: () => this.approveLeaves(),
-        color: 'bg-yellow-500 hover:bg-yellow-600',
       },
     ],
     [UserRole.HR]: [
       {
-        label: 'Add Employee',
-        action: () => this.addEmployee(),
-        color: 'bg-blue-500 hover:bg-blue-600',
-      },
-      {
-        label: 'Approve Leaves',
-        action: () => this.approveLeaves(),
+        label: 'Manage Leave',
+        action: () => this.manageLeave(),
         color: 'bg-violet-500 hover:bg-violet-600',
       },
       {
-        label: 'Generate Payslips',
-        action: () => this.generatePayslips(),
+        label: 'Generate Payslip',
+        action: () => this.generatePayslip(),
         color: 'bg-green-500 hover:bg-green-600',
       },
     ],
@@ -410,16 +395,18 @@ export class Dashboard implements OnInit {
     this.router.navigate(['/employee-form']);
   }
 
-  private manageDepartments(): void {
+  private addDepartment(): void {
     this.router.navigate(['/department-form']);
   }
 
+
   private generatePayslips(): void {
 this.router.navigate(['/emp-details']);
+
   }
 
-  private approveLeaves(): void {
-this.router.navigate(['/leave-management']);
+  private generatePayslip(): void {
+    this.router.navigate(['/payslip-form']);
   }
 
   // Employee Actions
@@ -432,6 +419,9 @@ this.router.navigate(['/leave-management']);
   }
 
   private updateProfile(): void {
-    this.router.navigate(['/employee-form']);
+    const employeeId = this.authService.getCurrentEmployeeId();
+    if (employeeId) {
+      this.router.navigate(['/employee-form', employeeId]);
+    }
   }
 }
