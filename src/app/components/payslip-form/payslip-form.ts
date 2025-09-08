@@ -9,8 +9,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { PayslipService, Payslip } from '../../services/payslip.service';
 
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+
 import { Observable, Observer } from 'rxjs';
 
 // Define interfaces
