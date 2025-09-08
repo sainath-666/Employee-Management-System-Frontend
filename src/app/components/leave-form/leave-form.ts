@@ -1,5 +1,10 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { LeaveService } from '../../services/leave.service';
 import { LeaveTypeEnum } from '../../models/leaveTypeEnum';
@@ -10,11 +15,8 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-leave-form',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    CommonModule,
-  ],
-  templateUrl: './leave-form.html'
+  imports: [ReactiveFormsModule, CommonModule],
+  templateUrl: './leave-form.html',
 })
 export class LeaveForm {
   leaveForm: FormGroup;
@@ -27,11 +29,10 @@ export class LeaveForm {
     { id: LeaveTypeEnum.Earned, name: 'Earned Leave' },
     { id: LeaveTypeEnum.Maternity, name: 'Maternity Leave' },
     { id: LeaveTypeEnum.Paternity, name: 'Paternity Leave' },
-    { id: LeaveTypeEnum.Other, name: 'Other Leave' }
+    { id: LeaveTypeEnum.Other, name: 'Other Leave' },
   ];
 
   numberOfDays: number = 0;
-
 
   constructor(
     private fb: FormBuilder,
@@ -40,16 +41,18 @@ export class LeaveForm {
     private snackBar: MatSnackBar,
     private router: Router
   ) {
-
     // Get current date in YYYY-MM-DD format for min date validation
     this.minDate = new Date().toISOString().split('T')[0];
-    
-    this.leaveForm = this.fb.group({
-      leaveType: ['', Validators.required],
-      startDate: ['', Validators.required],
-      endDate: ['', Validators.required],
-      reason: ['', [Validators.required, Validators.minLength(10)]]
-    }, { validators: this.dateRangeValidator });
+
+    this.leaveForm = this.fb.group(
+      {
+        leaveType: ['', Validators.required],
+        startDate: ['', Validators.required],
+        endDate: ['', Validators.required],
+        reason: ['', [Validators.required, Validators.minLength(10)]],
+      },
+      { validators: this.dateRangeValidator }
+    );
 
     // Subscribe to date changes to calculate number of days
     this.leaveForm.valueChanges.subscribe(() => {
@@ -60,17 +63,17 @@ export class LeaveForm {
   calculateNumberOfDays() {
     const startDate = this.leaveForm.get('startDate')?.value;
     const endDate = this.leaveForm.get('endDate')?.value;
-    
+
     if (startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
-      
+
       // Calculate the time difference in milliseconds
       const timeDiff = end.getTime() - start.getTime();
-      
+
       // Convert to days and add 1 to include both start and end dates
       this.numberOfDays = Math.floor(timeDiff / (1000 * 60 * 60 * 24)) + 1;
-      
+
       // Reset to 0 if calculation is negative (invalid date range)
       if (this.numberOfDays < 0) {
         this.numberOfDays = 0;
@@ -84,36 +87,36 @@ export class LeaveForm {
   dateRangeValidator(group: FormGroup) {
     const start = group.get('startDate')?.value;
     const end = group.get('endDate')?.value;
-    
+
     if (start && end) {
-      return new Date(start) <= new Date(end) 
-        ? null 
-        : { dateRange: true };
+      return new Date(start) <= new Date(end) ? null : { dateRange: true };
     }
     return null;
   }
 
-  onSubmit() {
-    if (this.leaveForm.valid) {
-
-      // Replace this with your actual API call
-      this.successMessage = 'Leave request submitted successfully!';
-      setTimeout(() => {
-        this.successMessage = '';
-        this.router.navigate(['/dashboard']);
-      }, 1500);
-    }
-  }
-
   onCancel() {
     this.router.navigate(['/dashboard']);
+  }
 
-      const employeeId = this.authService.getCurrentEmployeeId();
-      if (!employeeId) {
-        this.showNotification('User not authenticated. Please login again.', 'error');
-        return;
-      }
+  onSubmit() {
+    if (!this.leaveForm.valid) {
+      this.showNotification(
+        'Please fill all required fields correctly',
+        'error'
+      );
+      return;
+    }
 
+    const employeeId = this.authService.getCurrentEmployeeId();
+    if (!employeeId) {
+      this.showNotification(
+        'User not authenticated. Please login again.',
+        'error'
+      );
+      return;
+    }
+
+    if (this.leaveForm.valid) {
       const formValue = this.leaveForm.value;
       const leaveRequest = {
         employeeId: employeeId,
@@ -123,25 +126,32 @@ export class LeaveForm {
         maxDaysPerYear: this.numberOfDays,
         reason: formValue.reason,
         createdBy: employeeId,
-        createdDateTime: new Date().toISOString()
+        createdDateTime: new Date().toISOString(),
       };
 
       console.log('Submitting leave request:', leaveRequest);
       this.leaveService.createLeaveRequest(leaveRequest).subscribe({
         next: (response) => {
-          this.showNotification('Leave request submitted successfully', 'success');
+          this.showNotification(
+            'Leave request submitted successfully',
+            'success'
+          );
           this.router.navigate(['/leave-management']);
         },
         error: (error) => {
           console.error('Error submitting leave request:', error);
           this.showNotification(
-            error?.error?.message || 'Failed to submit leave request. Please try again.',
+            error?.error?.message ||
+              'Failed to submit leave request. Please try again.',
             'error'
           );
-        }
+        },
       });
     } else {
-      this.showNotification('Please fill all required fields correctly', 'error');
+      this.showNotification(
+        'Please fill all required fields correctly',
+        'error'
+      );
     }
   }
 
