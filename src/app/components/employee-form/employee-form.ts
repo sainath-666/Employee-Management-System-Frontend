@@ -16,6 +16,7 @@ import {
   AbstractControl,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Employee } from '../../interfaces/employee';
 import { RolesService, Role } from '../../services/roles.service';
 import {
@@ -25,11 +26,12 @@ import {
 import { EmployeeService } from '../../services/employee.service';
 import { DepartmentEmployeeService } from '../../services/department-employee.service';
 import { DepartmentEmployeeRequest } from '../../interfaces/departmentemployeerequest';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-employee-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './employee-form.html',
   styleUrls: ['./employee-form.css'],
 })
@@ -48,8 +50,6 @@ export class EmployeeForm implements OnInit, OnChanges {
   previewUrl: string | null = null;
   selectedDepartments: number[] = [];
 
-  departmentsControl = new FormControl<string[]>([]);
-
   genderOptions = [
     { value: 'Male', label: 'Male' },
     { value: 'Female', label: 'Female' },
@@ -61,7 +61,10 @@ export class EmployeeForm implements OnInit, OnChanges {
     private roleService: RolesService,
     private departmentService: DepartmentService,
     private employeeService: EmployeeService,
-    private departmentEmployeeService: DepartmentEmployeeService
+    private departmentEmployeeService: DepartmentEmployeeService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private authService: AuthService
   ) {
     this.initializeForm();
   }
@@ -70,6 +73,37 @@ export class EmployeeForm implements OnInit, OnChanges {
     this.initializeForm();
     this.loadRoles();
     this.loadDepartments();
+    
+    // Check if we're editing an existing employee
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) {
+        this.isEditMode = true;
+        // Load employee details
+        this.isLoading = true;
+        this.employeeService.getEmployeeById(parseInt(id, 10)).subscribe({
+          next: (employee) => {
+            this.employee = employee;
+            this.populateForm();
+            // Load employee departments
+            this.departmentEmployeeService.getDepartmentsForEmployee(parseInt(id, 10)).subscribe({
+              next: (departments) => {
+                this.selectedDepartments = departments.map(d => d.id);
+                this.isLoading = false;
+              },
+              error: (error) => {
+                console.error('Error loading departments:', error);
+                this.isLoading = false;
+              }
+            });
+          },
+          error: (error) => {
+            console.error('Error loading employee:', error);
+            this.isLoading = false;
+          }
+        });
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -162,53 +196,53 @@ export class EmployeeForm implements OnInit, OnChanges {
   }
 
   private initializeForm(): void {
+    const currentUserId = this.authService.getCurrentEmployeeId();
+    const isOwnProfile = this.isEditMode && currentUserId === this.employee?.id;
+
     this.employeeForm = this.fb.group({
-      employeeCode: [
-        '',
-        [
-          Validators.required,
-          Validators.maxLength(20),
-          Validators.pattern(/^[A-Za-z0-9]+$/),
-        ],
-      ],
-      name: [
-        '',
-        [
-          Validators.required,
-          Validators.maxLength(150),
-          Validators.pattern(/^[a-zA-Z\s]+$/),
-        ],
-      ],
-      email: [
-        '',
-        [Validators.required, Validators.email, Validators.maxLength(150)],
-      ],
-      mobileNumber: [
-        '',
-        [
-          Validators.required,
-          Validators.pattern(/^[0-9]{10,15}$/),
-          Validators.maxLength(15),
-        ],
-      ],
+      employeeCode: [{
+        value: '',
+        disabled: isOwnProfile
+      }, [
+        Validators.required,
+        Validators.maxLength(20),
+        Validators.pattern(/^[A-Za-z0-9]+$/),
+      ]],
+      name: ['', [
+        Validators.required,
+        Validators.maxLength(150),
+        Validators.pattern(/^[a-zA-Z\s]+$/),
+      ]],
+      email: ['', [
+        Validators.required,
+        Validators.email,
+        Validators.maxLength(150),
+      ]],
+      mobileNumber: ['', [
+        Validators.required,
+        Validators.pattern(/^[0-9]{10,15}$/),
+        Validators.maxLength(15),
+      ]],
       gender: ['', Validators.required],
       dob: [''],
-      roleId: [
-        '',
-        [
-          Validators.required,
-          (control: AbstractControl) => {
-            const value = control.value;
-            if (!value) return null;
-            const numValue = Number(value);
-            return !isNaN(numValue) && Number.isInteger(numValue)
-              ? null
-              : { invalidRole: true };
-          },
-        ],
-      ],
-      // password: [''],
-      status: [true],
+      roleId: [{
+        value: '',
+        disabled: isOwnProfile
+      }, [
+        Validators.required,
+        (control: AbstractControl) => {
+          const value = control.value;
+          if (!value) return null;
+          const numValue = Number(value);
+          return !isNaN(numValue) && Number.isInteger(numValue)
+            ? null
+            : { invalidRole: true };
+        },
+      ]],
+      status: [{
+        value: true,
+        disabled: isOwnProfile
+      }],
     });
 
     // Set password as required for create mode
@@ -228,6 +262,22 @@ export class EmployeeForm implements OnInit, OnChanges {
 
   private populateForm(): void {
     if (this.employee) {
+      const currentUserId = this.authService.getCurrentEmployeeId();
+      const isOwnProfile = currentUserId === this.employee.id;
+
+      // Keep original form control states
+      const employeeCode = this.employeeForm.get('employeeCode');
+      const roleId = this.employeeForm.get('roleId');
+      const status = this.employeeForm.get('status');
+
+      // Disable fields if it's own profile
+      if (isOwnProfile) {
+        employeeCode?.disable();
+        roleId?.disable();
+        status?.disable();
+      }
+
+      // Set form values
       this.employeeForm.patchValue({
         employeeCode: this.employee.employeeCode,
         name: this.employee.name,
@@ -238,18 +288,39 @@ export class EmployeeForm implements OnInit, OnChanges {
           ? new Date(this.employee.dob).toISOString().split('T')[0]
           : '',
         roleId: this.employee.roleId,
-
-        // password: '',
-
         status: this.employee.status ?? true,
       });
-
-      this.selectedDepartments = this.employee.departments || [];
 
       if (this.employee.profilePhotoPath) {
         this.previewUrl = this.employee.profilePhotoPath;
       }
     }
+  }
+
+  private loadEmployeeDetails(id: number): void {
+    this.isLoading = true;
+    this.employeeService.getEmployeeById(id).subscribe({
+      next: (employee) => {
+        this.employee = employee;
+        this.populateForm();
+
+        // Load employee departments
+        this.departmentEmployeeService.getDepartmentsForEmployee(id).subscribe({
+          next: (departments) => {
+            this.selectedDepartments = departments.map(d => d.id);
+            this.isLoading = false;
+          },
+          error: (error) => {
+            console.error('Error loading departments:', error);
+            this.isLoading = false;
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error loading employee:', error);
+        this.isLoading = false;
+      }
+    });
   }
 
   onFileSelected(event: Event): void {
@@ -363,7 +434,11 @@ export class EmployeeForm implements OnInit, OnChanges {
           // After employee is created, assign departments
           this.assignDepartmentsToEmployee(response.id);
           this.successMessage = 'Employee created successfully!';
-          setTimeout(() => (this.successMessage = ''), 3000); // Clear after 3 seconds
+          // Show success message then navigate
+          setTimeout(() => {
+            this.successMessage = '';
+            this.router.navigate(['/dashboard']);
+          }, 1500);
         } else {
           this.errorMessage = 'Invalid response from server';
           setTimeout(() => (this.errorMessage = ''), 3000);
@@ -394,7 +469,11 @@ export class EmployeeForm implements OnInit, OnChanges {
           // After employee is updated, update department assignments
           this.assignDepartmentsToEmployee(this.employee.id);
           this.successMessage = 'Employee updated successfully!';
-          setTimeout(() => (this.successMessage = ''), 3000);
+          // Show success message then navigate
+          setTimeout(() => {
+            this.successMessage = '';
+            this.router.navigate(['/dashboard']);
+          }, 1500);
         } else {
           this.errorMessage = 'Invalid response from server';
           setTimeout(() => (this.errorMessage = ''), 3000);
@@ -402,14 +481,19 @@ export class EmployeeForm implements OnInit, OnChanges {
       },
       error: (error) => {
         console.error('Error updating employee:', error);
-        const raw =
-          error?.error && typeof error.error === 'string' ? error.error : '';
+        const errorMessage = error?.error?.message || error?.error;
+        const raw = typeof errorMessage === 'string' ? errorMessage : '';
+
         if (raw.includes('UNIQUE KEY') || raw.includes('2627')) {
-          this.errorMessage =
-            'Employee code already exists. Please use a different code.';
+          this.errorMessage = 'Employee code already exists. Please use a different code.';
+        } else if (raw.includes('Unauthorized') || error.status === 401) {
+          this.errorMessage = 'You are not authorized to make these changes.';
+        } else if (raw.includes('Invalid data') || error.status === 400) {
+          this.errorMessage = 'Please check the form data and try again.';
         } else {
-          this.errorMessage = error.error?.message || 'Error updating employee';
+          this.errorMessage = 'Error updating profile. Please try again later.';
         }
+
         setTimeout(() => (this.errorMessage = ''), 3000);
       },
     });
@@ -484,20 +568,28 @@ export class EmployeeForm implements OnInit, OnChanges {
     }
   }
 
-  private createFormData(): any {
+  private createFormData(): FormData {
     const formData = new FormData();
+    
+    // Use getRawValue() to get all form values including disabled fields
+    const formValue = this.employeeForm.getRawValue();
 
-    // Add form fields
-    Object.keys(this.employeeForm.value).forEach((key) => {
-      const value = this.employeeForm.value[key];
-      if (value !== null && value !== '') {
-        formData.append(key, value);
+    // Add form fields to FormData
+    Object.keys(formValue).forEach((key) => {
+      const value = formValue[key];
+      if (value !== null && value !== undefined && value !== '') {
+        if (key === 'dob' && value) {
+          // Convert date to ISO string for backend
+          formData.append(key, new Date(value).toISOString());
+        } else {
+          formData.append(key, value.toString());
+        }
       }
     });
 
     // Default password as mobile number on create
     if (!this.isEditMode) {
-      const mobile = this.employeeForm.get('mobileNumber')?.value || '';
+      const mobile = formValue.mobileNumber;
       if (mobile) {
         formData.append('password', mobile);
       }
@@ -522,7 +614,7 @@ export class EmployeeForm implements OnInit, OnChanges {
   }
 
   onCancel(): void {
-    this.formCancel.emit();
+    this.router.navigate(['/dashboard']);
   }
 
   private markFormGroupTouched(): void {

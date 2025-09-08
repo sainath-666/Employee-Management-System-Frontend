@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-leave-form',
@@ -11,6 +12,8 @@ import { CommonModule } from '@angular/common';
 export class LeaveForm {
   leaveForm: FormGroup;
   minDate: string;
+  successMessage: string = '';
+  errorMessage: string = '';
   leaveTypes = [
     
     { id: 'sick', name: 'Sick Leave' },
@@ -23,7 +26,7 @@ export class LeaveForm {
 
   numberOfDays: number = 0;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private router: Router) {
     // Get current date in YYYY-MM-DD format for min date validation
     this.minDate = new Date().toISOString().split('T')[0];
     
@@ -78,8 +81,16 @@ export class LeaveForm {
 
   onSubmit() {
     if (this.leaveForm.valid) {
-      console.log('Leave request:', this.leaveForm.value);
-      // TODO: Implement API call to submit leave request
+      // Replace this with your actual API call
+      this.successMessage = 'Leave request submitted successfully!';
+      setTimeout(() => {
+        this.successMessage = '';
+        this.router.navigate(['/dashboard']);
+      }, 1500);
     }
+  }
+
+  onCancel() {
+    this.router.navigate(['/dashboard']);
   }
 }

@@ -432,6 +432,9 @@ this.router.navigate(['/leave-management']);
   }
 
   private updateProfile(): void {
-    this.router.navigate(['/employee-form']);
+    const employeeId = this.authService.getCurrentEmployeeId();
+    if (employeeId) {
+      this.router.navigate(['/employee-form', employeeId]);
+    }
   }
 }
