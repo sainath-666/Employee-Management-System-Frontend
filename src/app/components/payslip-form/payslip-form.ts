@@ -1,5 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { PayslipService, Payslip } from '../../services/payslip.service';
@@ -22,7 +27,7 @@ interface DocumentClone extends Document {
   selector: 'app-payslip-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  templateUrl: './payslip-form.html'
+  templateUrl: './payslip-form.html',
 })
 export class PayslipForm implements OnInit {
   payslipForm!: FormGroup;
@@ -48,11 +53,11 @@ export class PayslipForm implements OnInit {
     this.initializeForm();
 
     // Check URL parameters for employee data
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe((params) => {
       if (params['employeeId'] && params['employeeName']) {
         this.#employee = {
           id: params['employeeId'],
-          name: params['employeeName']
+          name: params['employeeName'],
         };
         this.updateFormWithEmployeeData();
       }
@@ -70,13 +75,13 @@ export class PayslipForm implements OnInit {
           this.payslipForm.patchValue({
             baseSalary: payslip.baseSalary,
             allowances: payslip.allowances,
-            deductions: payslip.deductions
+            deductions: payslip.deductions,
           });
         },
         error: (error: any) => {
           console.error('Error loading payslip:', error);
           alert('Error loading payslip data. Please try again.');
-        }
+        },
       });
     }
   }
@@ -89,7 +94,7 @@ export class PayslipForm implements OnInit {
     // Simulated API call - replace with actual backend call
     this.#employee = {
       id: '22',
-      name: 'John Doe'
+      name: 'John Doe',
     };
   }
 
@@ -97,7 +102,7 @@ export class PayslipForm implements OnInit {
     if (this.payslipForm && this.#employee) {
       this.payslipForm.patchValue({
         name: this.#employee.name,
-        empId: this.#employee.id
+        empId: this.#employee.id,
       });
     }
   }
@@ -106,21 +111,22 @@ export class PayslipForm implements OnInit {
     this.payslipForm = this.fb.group({
       name: ['', { disabled: true }],
       empId: ['', { disabled: true }],
-      baseSalary: [0, [
-        Validators.required,
-        Validators.min(0.01),
-        Validators.pattern(/^\d+$/)
-      ]],
-      allowances: [0, [
-        Validators.required,
-        Validators.min(0),
-        Validators.pattern(/^\d+$/)
-      ]],
-      deductions: [0, [
-        Validators.required,
-        Validators.min(0),
-        Validators.pattern(/^\d+$/)
-      ]]
+      baseSalary: [
+        0,
+        [
+          Validators.required,
+          Validators.min(0.01),
+          Validators.pattern(/^\d+$/),
+        ],
+      ],
+      allowances: [
+        0,
+        [Validators.required, Validators.min(0), Validators.pattern(/^\d+$/)],
+      ],
+      deductions: [
+        0,
+        [Validators.required, Validators.min(0), Validators.pattern(/^\d+$/)],
+      ],
     });
   }
 
@@ -130,14 +136,18 @@ export class PayslipForm implements OnInit {
     }
 
     const values = this.payslipForm.getRawValue();
-    return (values.baseSalary || 0) + (values.allowances || 0) - (values.deductions || 0);
+    return (
+      (values.baseSalary || 0) +
+      (values.allowances || 0) -
+      (values.deductions || 0)
+    );
   }
 
   public getCurrentDate(): string {
     return new Date().toLocaleDateString('en-IN', {
       day: '2-digit',
       month: 'long',
-      year: 'numeric'
+      year: 'numeric',
     });
   }
 
@@ -148,8 +158,11 @@ export class PayslipForm implements OnInit {
   public generatePDF(): void {
     if (!this.payslipForm.valid) {
       const errors = Object.keys(this.payslipForm.controls)
-        .filter(key => this.payslipForm.controls[key].errors)
-        .map(key => `${key}: ${JSON.stringify(this.payslipForm.controls[key].errors)}`);
+        .filter((key) => this.payslipForm.controls[key].errors)
+        .map(
+          (key) =>
+            `${key}: ${JSON.stringify(this.payslipForm.controls[key].errors)}`
+        );
       console.error('Form validation errors:', errors);
       alert('Form is not valid. Please check all fields.');
       return;
@@ -158,32 +171,39 @@ export class PayslipForm implements OnInit {
     // Get the raw form values including disabled fields
     const formValues = this.payslipForm.getRawValue();
     console.log('Form values:', formValues);
-    
+
     // Log detailed validation state
     console.log('Form validation state:', {
       isValid: this.payslipForm.valid,
       errors: this.payslipForm.errors,
-      controls: Object.keys(this.payslipForm.controls).reduce((acc: any, key: string) => {
-        acc[key] = {
-          value: this.payslipForm.get(key)?.value,
-          valid: this.payslipForm.get(key)?.valid,
-          errors: this.payslipForm.get(key)?.errors,
-          touched: this.payslipForm.get(key)?.touched,
-          dirty: this.payslipForm.get(key)?.dirty
-        };
-        return acc;
-      }, {})
+      controls: Object.keys(this.payslipForm.controls).reduce(
+        (acc: any, key: string) => {
+          acc[key] = {
+            value: this.payslipForm.get(key)?.value,
+            valid: this.payslipForm.get(key)?.valid,
+            errors: this.payslipForm.get(key)?.errors,
+            touched: this.payslipForm.get(key)?.touched,
+            dirty: this.payslipForm.get(key)?.dirty,
+          };
+          return acc;
+        },
+        {}
+      ),
     });
-    
+
     // Validate all required number fields exist
     const requiredNumericFields = ['baseSalary', 'allowances', 'deductions'];
     for (const field of requiredNumericFields) {
-      if (formValues[field] === null || formValues[field] === undefined || isNaN(Number(formValues[field]))) {
+      if (
+        formValues[field] === null ||
+        formValues[field] === undefined ||
+        isNaN(Number(formValues[field]))
+      ) {
         alert(`${field} must be a valid number`);
         return;
       }
     }
-    
+
     // Make sure all required values are present
     if (!formValues.empId) {
       alert('Employee ID is required');
@@ -203,21 +223,23 @@ export class PayslipForm implements OnInit {
     const baseSalary = Math.round(Math.abs(Number(formValues.baseSalary)));
     const allowances = Math.round(Math.abs(Number(formValues.allowances)));
     const deductions = Math.round(Math.abs(Number(formValues.deductions)));
-    
+
     // Log the values for debugging
     console.log('Form Values:', {
       employeeId,
       baseSalary,
       allowances,
-      deductions
+      deductions,
     });
 
     // Validate numeric values
     if ([baseSalary, allowances, deductions].some(isNaN)) {
-      alert('Invalid numeric values in form. Please ensure all numbers are valid.');
+      alert(
+        'Invalid numeric values in form. Please ensure all numbers are valid.'
+      );
       return;
     }
-    
+
     // Validate base salary is greater than 0
     if (baseSalary <= 0) {
       alert('Base salary must be greater than 0');
@@ -240,23 +262,27 @@ export class PayslipForm implements OnInit {
       return;
     }
 
-    // Create payslip data with only required fields
+    // Create payslip data with all required fields
+    const currentDate = new Date();
+    const calculatedNetSalary =
+      roundedBaseSalary + roundedAllowances - roundedDeductions;
+
+    // Final validation
+    if (calculatedNetSalary < 0) {
+      alert('Net salary cannot be negative. Please check deductions.');
+      return;
+    }
+
     const payslipData = {
       employeeId,
       baseSalary: roundedBaseSalary,
       allowances: roundedAllowances,
       deductions: roundedDeductions,
-      createdBy: 22 // HR ID
+      createdBy: 22, // HR ID
+      month: currentDate.toLocaleString('default', { month: 'long' }),
+      year: currentDate.getFullYear(),
+      netSalary: calculatedNetSalary,
     } as const;
-
-    // Calculate net salary for display
-    const netSalary = roundedBaseSalary + roundedAllowances - roundedDeductions;
-
-    // Final validation
-    if (netSalary < 0) {
-      alert('Net salary cannot be negative. Please check deductions.');
-      return;
-    }
 
     // Additional validations
     if (roundedBaseSalary <= 0) {
@@ -268,7 +294,7 @@ export class PayslipForm implements OnInit {
       alert('Employee ID must be a positive number');
       return;
     }
-    
+
     // Log the final payload for debugging
     console.log('Payslip Payload:', payslipData);
 
@@ -276,7 +302,10 @@ export class PayslipForm implements OnInit {
     this.loading = true;
 
     // Log the exact data being sent
-    console.log('Sending payslip data to server:', JSON.stringify(payslipData, null, 2));
+    console.log(
+      'Sending payslip data to server:',
+      JSON.stringify(payslipData, null, 2)
+    );
 
     const observer: Observer<any> = {
       next: (response) => {
@@ -286,17 +315,23 @@ export class PayslipForm implements OnInit {
       },
       error: (error: any) => {
         console.error('Full error object:', error);
-        
+
         let errorMessage: string;
         if (error instanceof Error) {
           // Direct error message from our service
           errorMessage = 'Error generating payslip: ' + error.message;
         } else if (error.status === 0) {
-          errorMessage = 'Error generating payslip: Cannot connect to server. Is the backend running?';
+          errorMessage =
+            'Error generating payslip: Cannot connect to server. Is the backend running?';
         } else if (error.status === 400) {
-          const validationErrors = error.error?.errors || error.error?.message || 'Invalid payslip data';
+          const validationErrors =
+            error.error?.errors ||
+            error.error?.message ||
+            'Invalid payslip data';
           if (typeof validationErrors === 'object') {
-            errorMessage = 'Error generating payslip: ' + Object.values(validationErrors).join('\n');
+            errorMessage =
+              'Error generating payslip: ' +
+              Object.values(validationErrors).join('\n');
           } else {
             errorMessage = 'Error generating payslip: ' + validationErrors;
           }
@@ -305,14 +340,15 @@ export class PayslipForm implements OnInit {
         } else if (error.error?.message) {
           errorMessage = 'Error generating payslip: ' + error.error.message;
         } else {
-          errorMessage = 'Error generating payslip: An unexpected error occurred. Please try again.';
+          errorMessage =
+            'Error generating payslip: An unexpected error occurred. Please try again.';
         }
 
         // Log the full error context
         console.error('Error context:', {
           errorMessage,
           originalError: error,
-          formValues: this.payslipForm?.value
+          formValues: this.payslipForm?.value,
         });
 
         alert(errorMessage);
@@ -320,11 +356,9 @@ export class PayslipForm implements OnInit {
       complete: () => {
         this.loading = false;
         console.log('Request completed');
-      }
+      },
     };
 
-    this.payslipService.createAndGeneratePdf(payslipData)
-      .subscribe(observer);
+    this.payslipService.createPayslip(payslipData).subscribe(observer);
   }
 }
-

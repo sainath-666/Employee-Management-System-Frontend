@@ -1,4 +1,3 @@
-
 import { Injectable } from '@angular/core';
 import {
   HttpClient,
@@ -17,6 +16,9 @@ export interface Payslip {
   deductions: number;
   createdBy: number;
   pdfPath?: string;
+  month: string;
+  year: number;
+  netSalary: number;
 }
 
 @Injectable({
@@ -27,7 +29,6 @@ export class PayslipService {
 
   private httpOptions = {
     headers: new HttpHeaders({
-
       'Content-Type': 'application/json',
       Accept: 'application/json',
     }),
@@ -39,7 +40,7 @@ export class PayslipService {
   private handleError(error: HttpErrorResponse) {
     console.error('API Error:', error);
     let message = 'An unexpected error occurred';
-    
+
     if (error.error?.message) {
       message = error.error.message;
     } else if (error.status === 0) {
@@ -49,14 +50,11 @@ export class PayslipService {
     } else if (error.status === 404) {
       message = 'API endpoint not found';
     }
-    
+
     return throwError(() => new Error(message));
   }
 
   getAllPayslips(): Observable<Payslip[]> {
-    return this.http.get<Payslip[]>(this.apiUrl, this.httpOptions).pipe(
-      retry(1),
-      catchError(this.handleError)
     console.log('Fetching payslips from:', this.apiUrl);
     return this.http.get<any[]>(this.apiUrl, this.httpOptions).pipe(
       map((response) => {
@@ -67,30 +65,18 @@ export class PayslipService {
         }
 
         // Transform and validate each payslip
-        const payslips = response.map((item) => {
-          const payslip: Payslip = {
-            id: item.id,
-            employeeId: Number(item.employeeId),
-            month: item.month,
-            year: Number(item.year),
-            Salary: Number(item.salary || item.Salary || 0),
-            BaseSalary: Number(item.baseSalary || item.BaseSalary || 0),
-            allowances: Number(item.allowances || 0),
-            deductions: Number(item.deductions || 0),
-            netSalary: Number(item.netSalary || 0),
-            pdfPath: item.pdfPath,
-          };
-
-          // Add createdBy if it exists
-          if (item.createdBy) {
-            payslip.createdBy = Number(item.createdBy);
-          }
-
-          return payslip;
-        });
-
-        console.log('Transformed payslips:', payslips);
-        return payslips;
+        return response.map((item) => ({
+          id: item.id,
+          employeeId: Number(item.employeeId),
+          baseSalary: Number(item.baseSalary || 0),
+          allowances: Number(item.allowances || 0),
+          deductions: Number(item.deductions || 0),
+          createdBy: Number(item.createdBy || 0),
+          pdfPath: item.pdfPath,
+          month: item.month || '',
+          year: Number(item.year || new Date().getFullYear()),
+          netSalary: Number(item.netSalary || 0),
+        }));
       }),
       retry(1),
       catchError((err) => {
@@ -101,7 +87,6 @@ export class PayslipService {
   }
 
   getPayslipById(id: number): Observable<Payslip> {
-
     return this.http
       .get<Payslip>(`${this.apiUrl}/${id}`, this.httpOptions)
       .pipe(retry(1), catchError(this.handleError));
@@ -121,7 +106,7 @@ export class PayslipService {
     const cleanPayslip = {
       ...payslip,
       employeeId: Number(payslip.employeeId),
-      BaseSalary: Number(payslip.BaseSalary || 0),
+      baseSalary: Number(payslip.baseSalary || 0),
       allowances: Number(payslip.allowances || 0),
       deductions: Number(payslip.deductions || 0),
       netSalary: Number(payslip.netSalary || 0),
@@ -131,8 +116,8 @@ export class PayslipService {
     // Log the values to verify
     console.log('Clean payslip data:', {
       ...cleanPayslip,
-      originalBaseSalary: payslip.BaseSalary,
-      convertedBaseSalary: cleanPayslip.BaseSalary,
+      originalBaseSalary: payslip.baseSalary,
+      convertedBaseSalary: cleanPayslip.baseSalary,
     });
 
     console.log('Creating payslip with data:', cleanPayslip);
@@ -187,8 +172,7 @@ export class PayslipService {
     const cleanPayslip = {
       ...payslip,
       employeeId: Number(payslip.employeeId),
-      BaseSalary: Number(payslip.BaseSalary || 0),
-      Salary: Number(payslip.Salary || 0),
+      baseSalary: Number(payslip.baseSalary || 0),
       allowances: Number(payslip.allowances || 0),
       deductions: Number(payslip.deductions || 0),
       netSalary: Number(payslip.netSalary || 0),
@@ -242,32 +226,24 @@ export class PayslipService {
   }
 
   deletePayslip(id: number): Observable<any> {
-
-    return this.http.delete(`${this.apiUrl}/${id}`, this.httpOptions).pipe(
-      catchError(this.handleError)
-    );
+    return this.http
+      .delete(`${this.apiUrl}/${id}`, this.httpOptions)
+      .pipe(catchError(this.handleError));
   }
 
   uploadPayslipPdf(payslipId: number, file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.http.post(`${this.apiUrl}/${payslipId}/upload`, formData).pipe(
-      catchError(this.handleError)
-    );
+    return this.http
+      .post(`${this.apiUrl}/${payslipId}/upload`, formData)
+      .pipe(catchError(this.handleError));
   }
 
-  downloadPdf(id: number): void {
-    window.open(`${this.apiUrl}/${id}/download`, '_blank');
-
-    const uploadOptions = {
-      headers: new HttpHeaders({
-        Accept: 'application/json',
-      }),
-    };
-
+  // Generate PDF for a payslip
+  generatePdf(id: number): Observable<any> {
     return this.http
-      .post(`${this.apiUrl}/${id}/upload-pdf`, formData, uploadOptions)
+      .post(`${this.apiUrl}/${id}/generate-pdf`, {}, this.httpOptions)
       .pipe(catchError(this.handleError));
   }
 
@@ -294,6 +270,5 @@ export class PayslipService {
         alert('Failed to download payslip PDF. Please try again later.');
       },
     });
-
   }
 }
