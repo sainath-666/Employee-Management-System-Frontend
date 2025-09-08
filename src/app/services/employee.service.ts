@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class EmployeeService {
   private baseUrl = 'https://localhost:7056/api/Employee'; // Adjust if needed
@@ -22,7 +22,9 @@ export class EmployeeService {
 
   // 🔹 Create employee (accept FormData directly)
   createEmployee(formData: FormData): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}`, formData);
+    // Remove Content-Type header to let the browser set it with the boundary
+    const headers = new HttpHeaders();
+    return this.http.post<any>(`${this.baseUrl}`, formData, { headers });
   }
 
   // 🔹 Update employee (accept FormData directly)

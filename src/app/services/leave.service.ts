@@ -5,30 +5,29 @@ import { environment } from '../../environments/environment';
 
 import { LeaveType } from '../models/leave-type.enum';
 import { Status } from '../models/status.enum';
+import { LeaveTypeEnum } from '../models/leaveTypeEnum';
+import { StatusEnum } from '../models/statusEnum';
 
 export interface LeaveRequest {
-  id: number;
-  employeeId?: number;
-  employeeName: string;
-  department: string;
-  type?: LeaveType | string | number;
-  leaveType?: LeaveType | string | number; // alternative property name
-  startDate: string;
-  endDate: string;
-  maxDaysPerYear?: number | null;
-  reason: string;
-  status: Status;
-  appliedOn: string;
-  actionDate?: string;
-  actionBy?: string;
-  comments?: string;
+     id: number;
+    employeeId: number;
+    leaveTypeID?: LeaveTypeEnum;   // nullable enum → optional
+    startDate?: string;            // DateTime? → optional string
+    endDate?: string;
+    maxDaysPerYear?: number;
+    reason: string;
+    status: StatusEnum;            // always required (defaults from backend)
+    createdBy?: number;
+    createdDateTime: string;       // DateTime → string
+    updatedBy?: number;
+    updatedDateTime?: string;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class LeaveService {
-  private apiUrl = `${environment.apiUrl}/Leave`;
+  private apiUrl = `${environment.apiUrl}/api/Leave`;
 
   constructor(private http: HttpClient) {}
 
@@ -61,7 +60,7 @@ export class LeaveService {
     const statusValue = status === 'Approved' ? 1 : 2;
 
     // Normalize type value to number for LeaveTypeID (backend enum)
-    const rawType = (request.type ?? request.leaveType) as number | string | undefined;
+    const rawType = (request.leaveTypeID ?? request.leaveTypeID) as number | string | undefined;
     const leaveTypeID =
       typeof rawType === 'string' ? parseInt(rawType, 10) : typeof rawType === 'number' ? rawType : 1;
 
@@ -75,7 +74,7 @@ export class LeaveService {
       reason: request.reason,
       status: statusValue,
       createdBy: null,
-      createdDateTime: request.appliedOn ? new Date(request.appliedOn).toISOString() : new Date().toISOString(),
+      createdDateTime: request.createdDateTime ? new Date(request.createdDateTime).toISOString() : new Date().toISOString(),
       updatedBy: actionById,
       updatedDateTime: new Date().toISOString(),
     } as any;
