@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import {
   HttpClient,
   HttpHeaders,
@@ -16,9 +16,6 @@ export interface Payslip {
   deductions: number;
   createdBy: number;
   pdfPath?: string;
-  month: string;
-  year: number;
-  netSalary: number;
 }
 
 @Injectable({
@@ -72,10 +69,7 @@ export class PayslipService {
           allowances: Number(item.allowances || 0),
           deductions: Number(item.deductions || 0),
           createdBy: Number(item.createdBy || 0),
-          pdfPath: item.pdfPath,
-          month: item.month || '',
-          year: Number(item.year || new Date().getFullYear()),
-          netSalary: Number(item.netSalary || 0),
+          pdfPath: item.pdfPath
         }));
       }),
       retry(1),
@@ -100,68 +94,39 @@ export class PayslipService {
     );
   }
 
-  // Create new payslip
-  createPayslip(payslip: Payslip): Observable<Payslip> {
-    // Create a deep copy of the payslip data to ensure clean data
-    const cleanPayslip = {
-      ...payslip,
-      employeeId: Number(payslip.employeeId),
-      baseSalary: Number(payslip.baseSalary || 0),
-      allowances: Number(payslip.allowances || 0),
-      deductions: Number(payslip.deductions || 0),
-      netSalary: Number(payslip.netSalary || 0),
-      year: Number(payslip.year),
+  // Create new payslip and generate PDF
+  createAndGeneratePdf(payslipData: {
+    employeeId: number;
+    baseSalary: number;
+    allowances: number;
+    deductions: number;
+    createdBy: number;
+  }): Observable<any> {
+    // Ensure we only send the required fields
+    const payload = {
+      employeeId: payslipData.employeeId,
+      baseSalary: payslipData.baseSalary,
+      allowances: payslipData.allowances,
+      deductions: payslipData.deductions,
+      createdBy: payslipData.createdBy
     };
 
-    // Log the values to verify
-    console.log('Clean payslip data:', {
-      ...cleanPayslip,
-      originalBaseSalary: payslip.baseSalary,
-      convertedBaseSalary: cleanPayslip.baseSalary,
-    });
-
-    console.log('Creating payslip with data:', cleanPayslip);
+    console.log('Sending exact payload:', payload);
 
     return this.http
-      .post<Payslip>(this.apiUrl, cleanPayslip, this.httpOptions)
+      .post(`${this.apiUrl}/create-and-generate-pdf`, payload, {
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json'
+        })
+      })
       .pipe(
-        map((response) => {
+        map(response => {
           console.log('Server response:', response);
-          if (!response) {
-            throw new Error('Empty response from server');
-          }
           return response;
         }),
-        catchError((error: HttpErrorResponse) => {
-          console.error('Payslip creation failed:', error);
-          console.error('Status:', error.status);
-          console.error('Status Text:', error.statusText);
-          console.error('Error body:', error.error);
-          console.error('Payload sent:', cleanPayslip);
-
-          let errorMessage = '';
-          if (error.status === 500) {
-            errorMessage =
-              'Server error. Please check if the employee ID exists and all values are valid.';
-            // Log detailed error for debugging
-            console.error('Detailed server error:', {
-              error: error.error,
-              message: error.message,
-              name: error.name,
-              statusText: error.statusText,
-            });
-          } else {
-            errorMessage =
-              error.error?.message ||
-              error.message ||
-              'An unexpected error occurred';
-          }
-
-          return throwError(() => ({
-            status: error.status,
-            message: errorMessage,
-            error: error.error,
-          }));
+        catchError(error => {
+          console.error('API Error:', error);
+          return throwError(() => error);
         })
       );
   }
@@ -170,14 +135,11 @@ export class PayslipService {
   updatePayslip(id: number, payslip: Payslip): Observable<Payslip> {
     // Create a deep copy of the payslip data to ensure clean data
     const cleanPayslip = {
-      ...payslip,
       employeeId: Number(payslip.employeeId),
       baseSalary: Number(payslip.baseSalary || 0),
       allowances: Number(payslip.allowances || 0),
       deductions: Number(payslip.deductions || 0),
-      netSalary: Number(payslip.netSalary || 0),
-      year: Number(payslip.year),
-      createdBy: Number(payslip.createdBy),
+      createdBy: Number(payslip.createdBy)
     };
 
     console.log('Updating payslip with data:', cleanPayslip);
