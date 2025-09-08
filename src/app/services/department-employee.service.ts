@@ -4,12 +4,15 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { DepartmentEmployeeRequest } from '../interfaces/departmentemployeerequest';
-import { Department } from './department.service';
 
-interface DepartmentResponse {
-  departmentId: number;
+interface DepartmentDetails {
+  id: number;
   departmentName: string;
   status: boolean;
+  createdBy: number | null;
+  createdDateTime: string;
+  updatedBy: number | null;
+  updatedDateTime: string | null;
 }
 
 @Injectable({
@@ -28,19 +31,22 @@ export class DepartmentEmployeeService {
   }
 
   // Get all departments assigned to an employee
-  getDepartmentsForEmployee(employeeId: number): Observable<Department[]> {
+  getDepartmentsForEmployee(
+    employeeId: number
+  ): Observable<DepartmentDetails[]> {
     console.log('Fetching departments for employee:', employeeId);
-    // Use the correct DepartmentEmployee endpoint
-    return this.http.get<Department[]>(`${this.baseUrl}/${employeeId}`).pipe(
-      tap((response) => {
-        console.log(
-          'Department API Response for employee',
-          employeeId,
-          ':',
-          response
-        );
-      })
-    );
+    return this.http
+      .get<DepartmentDetails[]>(`${this.baseUrl}/${employeeId}`)
+      .pipe(
+        tap((response) => {
+          console.log(
+            'Department API Response for employee',
+            employeeId,
+            ':',
+            response
+          );
+        })
+      );
   }
 
   // Remove a department from an employee
