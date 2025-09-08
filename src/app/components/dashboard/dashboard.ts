@@ -3,6 +3,11 @@ import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { EmployeeService } from '../../services/employee.service';
+import { DepartmentService } from '../../services/department.service';
+import { LeaveService } from '../../services/leave.service';
+import { DepartmentEmployeeService } from '../../services/department-employee.service';
+import { StatusEnum } from '../../models/statusEnum';
 
 type DepartmentConfig = {
   capacity: number;
@@ -29,7 +34,7 @@ interface DashboardStats {
   inactiveEmployees?: number;
   totalDepartments?: number;
   pendingLeaves?: number;
-  monthlyPayroll?: number;
+  employeesOnLeave?: number; // new field
   leaveBalance?: number;
   departmentEmployeeCount?: number;
   payslipStatus?: string;
@@ -59,7 +64,7 @@ export class Dashboard implements OnInit {
   };
 
   // Register Chart.js components
-  constructor(private authService: AuthService, private router: Router) {
+  constructor(private authService: AuthService, private router: Router, private employeeService: EmployeeService, private departmentService: DepartmentService, private leaveService: LeaveService, private departmentEmployeeService: DepartmentEmployeeService) {
     Chart.register(...registerables);
 
     // Set the user role based on the role ID from token
@@ -75,12 +80,12 @@ export class Dashboard implements OnInit {
 
   // Role-based statistics configuration
   statistics: DashboardStats = {
-    totalEmployees: 150,
-    activeEmployees: 142,
-    inactiveEmployees: 8,
-    totalDepartments: 6,
-    monthlyPayroll: 450000,
-    pendingLeaves: 12,
+    totalEmployees: 0,
+    activeEmployees: 0,
+    inactiveEmployees: 0,
+    totalDepartments: 0,
+    employeesOnLeave: 0,
+    pendingLeaves: 0,
     leaveBalance: 15,
     departmentEmployeeCount: 45,
     payslipStatus: 'Generated',
@@ -175,8 +180,8 @@ export class Dashboard implements OnInit {
         color: 'text-violet-600',
       },
       {
-        label: 'Monthly Payroll',
-        value: () => this.statistics.monthlyPayroll!,
+        label: 'On Leave Employees',
+        value: () => this.statistics.employeesOnLeave!,
         color: 'text-green-600',
       },
     ],
@@ -275,6 +280,36 @@ export class Dashboard implements OnInit {
   private departmentChart: Chart | null = null;
 
   ngOnInit() {
+    
+    this.employeeService.getAllEmployees().subscribe(employees => {
+    this.statistics.totalEmployees = employees.length;
+    this.statistics.activeEmployees = employees.filter(e => e.status==1).length;
+    this.statistics.inactiveEmployees = employees.filter(e =>e.status==0).length;
+    });
+
+        // If you have departmentService, you can also do:
+    this.departmentService.getAllDepartments().subscribe(department => {
+    this.statistics.totalDepartments = department.length;
+    });
+    
+ // Fetch all leave requests
+  this.leaveService.getAllLeaveRequests().subscribe(leaves => {
+    const today = new Date();
+
+    // Count employees currently on leave (Approved leaves that include today)
+    this.statistics.employeesOnLeave = leaves.filter(l => {
+      if (!l.startDate || !l.endDate) return false;
+      const start = new Date(l.startDate);
+      const end = new Date(l.endDate);
+      return l.status === StatusEnum.Accepted && start <= today && today <= end;
+    }).length;
+
+    // Count pending leaves
+    this.statistics.pendingLeaves = leaves.filter(l => l.status === StatusEnum.Pending).length;
+  });
+
+
+        // After fetching data, initialize the chart
     setTimeout(() => this.initializeDepartmentChart(), 0);
   }
 

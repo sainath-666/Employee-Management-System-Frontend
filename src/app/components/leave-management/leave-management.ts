@@ -298,9 +298,19 @@ export class LeaveManagement implements OnInit {
     });
   }
 
+
+  getDuration(start: string | Date | undefined, end: string | Date | undefined): string {
+    if (!start || !end) return 'N/A';
+    const startDate = start instanceof Date ? start : new Date(start);
+    const endDate = end instanceof Date ? end : new Date(end);
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    return `${days} day${days > 1 ? 's' : ''}`;
+
   protected getLeaveTypeLabel(leaveTypeId?: LeaveTypeEnum): string {
     if (!leaveTypeId) return 'Unknown';
     return LeaveTypeEnum[leaveTypeId] || 'Unknown';
+
   }
 
   protected getDuration(startDate?: string, endDate?: string): string {

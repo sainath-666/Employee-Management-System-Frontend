@@ -12,8 +12,8 @@ export interface LeaveRequest {
      id: number;
     employeeId: number;
     leaveTypeID?: LeaveTypeEnum;   // nullable enum → optional
-    startDate?: string;            // DateTime? → optional string
-    endDate?: string;
+    startDate?: string | Date;            // DateTime? → optional string
+    endDate?: string | Date;
     maxDaysPerYear?: number;
     reason: string;
     status: StatusEnum;            // always required (defaults from backend)
