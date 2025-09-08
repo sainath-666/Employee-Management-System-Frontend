@@ -75,7 +75,15 @@ export class PayslipListComponent implements OnInit {
 
     this.payslipService.getAllPayslips().subscribe({
       next: (data) => {
-        this.payslips = data;
+        const currentDate = new Date();
+        // Transform Payslip to PayslipWithEmployee
+        this.payslips = data.map(payslip => ({
+          ...payslip,
+          month: currentDate.toLocaleString('default', { month: 'long' }),
+          year: currentDate.getFullYear(),
+          netSalary: payslip.baseSalary + payslip.allowances - payslip.deductions,
+          employeeName: this.employeeMap.get(payslip.employeeId) || 'Unknown'
+        }));
         this.loading = false;
       },
       error: (err) => {
@@ -105,6 +113,7 @@ export class PayslipListComponent implements OnInit {
               );
         }),
         map((payslips: Payslip[]) => {
+          const currentDate = new Date();
           return payslips.map(
             (payslip) =>
               ({
@@ -115,6 +124,8 @@ export class PayslipListComponent implements OnInit {
                 allowances: payslip.allowances || 0,
                 deductions: payslip.deductions || 0,
                 netSalary: this.calculateNetSalary(payslip),
+                month: currentDate.toLocaleString('default', { month: 'long' }),
+                year: currentDate.getFullYear()
               } as PayslipWithEmployee)
           );
         }),
