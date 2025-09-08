@@ -37,7 +37,7 @@ export class Navbar implements AfterViewInit, OnInit {
         this.employeeService.getEmployeeById(this.employeeId).subscribe({
           next: (employee) => {
             if (employee.profilePhotoPath) {
-              this.profilePhotoUrl = `https://localhost:7056/api/Employee/image/${employee.profilePhotoPath}`;
+              this.profilePhotoUrl = this.employeeService.imageApiUrl + employee.profilePhotoPath;
             }
           },
           error: (error) => {

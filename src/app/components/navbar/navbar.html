@@ -25,6 +25,21 @@
         </div>
       </div>
 
+            <!-- Profile and Logout Section (Right) -->
+            <div class="hidden md:block">
+                <div class="ml-4 flex items-center space-x-4">
+                    <!-- Profile Dropdown -->
+                    <div class="relative">
+                        <button (click)="viewProfile()" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full">
+                            <img class="h-8 w-8 rounded-full border-2 border-gray-200"
+                                 [src]="profilePhotoUrl || 'assets/images/default-user.png'"
+                                 [alt]="userName + '\'s profile photo'"
+                                 title="Click to view profile">
+                            <span class="text-sm font-medium">{{userName}}</span>
+                            
+                        </button>
+                    </div>
+
       <!-- Navigation Items (Middle) -->
       <div class="hidden md:block">
         <div class="ml-10 flex items-baseline space-x-6">
