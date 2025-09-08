@@ -8,24 +8,12 @@ import { DepartmentService } from '../../services/department.service';
 import { LeaveService } from '../../services/leave.service';
 import { DepartmentEmployeeService } from '../../services/department-employee.service';
 import { StatusEnum } from '../../models/statusEnum';
-
-type DepartmentConfig = {
-  capacity: number;
-  color: string;
-};
+import { Employee } from '../../interfaces/employee';
 
 enum UserRole {
   ADMIN = 'ADMIN',
   HR = 'HR',
   EMPLOYEE = 'EMPLOYEE',
-}
-
-interface UserProfile {
-  id: number;
-  name: string;
-  role: UserRole;
-  departmentId: number;
-  email: string;
 }
 
 interface DashboardStats {
@@ -34,7 +22,7 @@ interface DashboardStats {
   inactiveEmployees?: number;
   totalDepartments?: number;
   pendingLeaves?: number;
-  employeesOnLeave?: number; // new field
+  employeesOnLeave?: number;
   leaveBalance?: number;
   departmentEmployeeCount?: number;
   payslipStatus?: string;
@@ -43,7 +31,6 @@ interface DashboardStats {
 interface QuickAction {
   label: string;
   action: () => void;
-  icon?: string;
   color: string;
 }
 
@@ -55,30 +42,14 @@ interface QuickAction {
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
-  currentUser: UserProfile = {
+  currentUser = {
     id: 1,
     name: '',
-    role: UserRole.EMPLOYEE,
+    role: UserRole.ADMIN,
     departmentId: 1,
     email: '',
   };
 
-  // Register Chart.js components
-  constructor(private authService: AuthService, private router: Router, private employeeService: EmployeeService, private departmentService: DepartmentService, private leaveService: LeaveService, private departmentEmployeeService: DepartmentEmployeeService) {
-    Chart.register(...registerables);
-
-    // Set the user role based on the role ID from token
-    const roleId = this.authService.getUserRole();
-    if (roleId === 10) {
-      this.currentUser.role = UserRole.ADMIN;
-    } else if (roleId === 9) {
-      this.currentUser.role = UserRole.HR;
-    } else if (roleId === 2) {
-      this.currentUser.role = UserRole.EMPLOYEE;
-    }
-  }
-
-  // Role-based statistics configuration
   statistics: DashboardStats = {
     totalEmployees: 0,
     activeEmployees: 0,
@@ -86,12 +57,16 @@ export class Dashboard implements OnInit {
     totalDepartments: 0,
     employeesOnLeave: 0,
     pendingLeaves: 0,
-    leaveBalance: 15,
-    departmentEmployeeCount: 45,
-    payslipStatus: 'Generated',
+    leaveBalance: 0,
+    departmentEmployeeCount: 0,
+    payslipStatus: 'N/A',
   };
 
-  // Quick actions configuration based on role
+  departments: Array<{ name: string; count: number }> = [];
+  recentActivities: Array<{ action: string; details: string; time: string }> =
+    [];
+  private departmentChart: Chart | null = null;
+
   quickActions: Record<UserRole, QuickAction[]> = {
     [UserRole.ADMIN]: [
       {
@@ -136,7 +111,6 @@ export class Dashboard implements OnInit {
     ],
   };
 
-  // Role-based statistics cards configuration
   statsConfig: Record<
     UserRole,
     Array<{ label: string; value: () => number | string; color: string }>
@@ -204,113 +178,146 @@ export class Dashboard implements OnInit {
     ],
   };
 
-  // Department configuration with capacity and color information
-  readonly departmentConfig: Record<string, DepartmentConfig> = {
-    Engineering: { capacity: 60, color: '#3B82F6' }, // Blue
-    Sales: { capacity: 40, color: '#10B981' }, // Green
-    Marketing: { capacity: 30, color: '#F59E0B' }, // Yellow
-    HR: { capacity: 20, color: '#8B5CF6' }, // Purple
-    Finance: { capacity: 25, color: '#EC4899' }, // Pink
-    Operations: { capacity: 25, color: '#6366F1' }, // Indigo
-  };
-
-  departments = [
-    { name: 'Engineering', count: 45 },
-    { name: 'Sales', count: 30 },
-    { name: 'Marketing', count: 25 },
-    { name: 'HR', count: 15 },
-    { name: 'Finance', count: 20 },
-    { name: 'Operations', count: 15 },
-  ];
-
-  getRecentActivities(): any[] {
-    if (this.currentUser.role === UserRole.EMPLOYEE) {
-      return [
-        {
-          action: 'Leave Request',
-          details: 'Your leave request for Sept 15-16 is pending approval',
-          time: '2 hours ago',
-        },
-        {
-          action: 'Attendance Marked',
-          details: 'Clock in at 9:00 AM',
-          time: '8 hours ago',
-        },
-        {
-          action: 'Payslip Generated',
-          details: 'Your August payslip is ready for download',
-          time: '2 days ago',
-        },
-        {
-          action: 'Project Assignment',
-          details: 'You were assigned to Project Alpha',
-          time: '3 days ago',
-        },
-      ];
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private employeeService: EmployeeService,
+    private departmentService: DepartmentService,
+    private leaveService: LeaveService,
+    private departmentEmployeeService: DepartmentEmployeeService
+  ) {
+    Chart.register(...registerables);
+    const roleId = this.authService.getUserRole();
+    if (roleId === 10) {
+      this.currentUser.role = UserRole.ADMIN;
+    } else if (roleId === 9) {
+      this.currentUser.role = UserRole.HR;
+    } else if (roleId === 2) {
+      this.currentUser.role = UserRole.EMPLOYEE;
     }
-    return [
-      {
-        action: 'New employee added',
-        details: 'John Doe joined Engineering ',
-        time: '2 hours ago',
-      },
-      {
-        action: 'Leave approved',
-        details: "Sarah's vacation request approved",
-        time: '3 hours ago',
-      },
-      {
-        action: 'Payslip generated',
-        details: 'August payslips processed',
-        time: '5 hours ago',
-      },
-      {
-        action: 'Department update',
-        details: 'New project team created',
-        time: '1 day ago',
-      },
-    ];
   }
-
-  get recentActivities() {
-    return this.getRecentActivities();
-  }
-
-  // Chart instance
-  private departmentChart: Chart | null = null;
 
   ngOnInit() {
-    
-    this.employeeService.getAllEmployees().subscribe(employees => {
-    this.statistics.totalEmployees = employees.length;
-    this.statistics.activeEmployees = employees.filter(e => e.status==1).length;
-    this.statistics.inactiveEmployees = employees.filter(e =>e.status==0).length;
+    this.loadEmployeeStats();
+    this.loadLeaveStats();
+    this.updateRecentActivities();
+  }
+
+  private loadEmployeeStats() {
+    this.employeeService.getAllEmployees().subscribe({
+      next: (employees: any[]) => {
+        this.statistics.totalEmployees = employees.length;
+        this.statistics.activeEmployees = employees.filter(
+          (e) => e.status === true
+        ).length;
+        this.statistics.inactiveEmployees = employees.filter(
+          (e) => e.status === false
+        ).length;
+
+        // After getting employees, fetch departments
+        this.loadDepartmentsData(employees);
+      },
+      error: (error) => {
+        console.error('Error fetching employees:', error);
+        // Initialize with zeros in case of error
+        this.statistics.totalEmployees = 0;
+        this.statistics.activeEmployees = 0;
+        this.statistics.inactiveEmployees = 0;
+      },
     });
+  }
 
-        // If you have departmentService, you can also do:
-    this.departmentService.getAllDepartments().subscribe(department => {
-    this.statistics.totalDepartments = department.length;
+  private loadLeaveStats() {
+    this.leaveService.getAllLeaveRequests().subscribe({
+      next: (leaves) => {
+        const today = new Date();
+
+        // Count employees currently on leave
+        this.statistics.employeesOnLeave = leaves.filter((l) => {
+          if (!l.startDate || !l.endDate) return false;
+          const start = new Date(l.startDate);
+          const end = new Date(l.endDate);
+          return (
+            l.status === StatusEnum.Accepted && start <= today && end >= today
+          );
+        }).length;
+
+        // Count pending leaves
+        this.statistics.pendingLeaves = leaves.filter(
+          (l) => l.status === StatusEnum.Pending
+        ).length;
+      },
+      error: (error) => {
+        console.error('Error fetching leave requests:', error);
+        this.statistics.employeesOnLeave = 0;
+        this.statistics.pendingLeaves = 0;
+      },
     });
-    
- // Fetch all leave requests
-  this.leaveService.getAllLeaveRequests().subscribe(leaves => {
-    const today = new Date();
+  }
 
-    // Count employees currently on leave (Approved leaves that include today)
-    this.statistics.employeesOnLeave = leaves.filter(l => {
-      if (!l.startDate || !l.endDate) return false;
-      const start = new Date(l.startDate);
-      const end = new Date(l.endDate);
-      return l.status === StatusEnum.Accepted && start <= today && today <= end;
-    }).length;
+  private loadDepartmentsData(employees: any[]) {
+    this.departmentService.getAllDepartments().subscribe({
+      next: (departments) => {
+        this.statistics.totalDepartments = departments.length;
+        this.departments = [];
 
-    // Count pending leaves
-    this.statistics.pendingLeaves = leaves.filter(l => l.status === StatusEnum.Pending).length;
-  });
+        // Create a map to store department data while we fetch counts
+        const departmentMap = new Map(
+          departments.map((dept) => [
+            dept.id,
+            { name: dept.departmentName || 'Unknown', count: 0 },
+          ])
+        );
 
+        let processedEmployees = 0;
+        const totalEmployees = employees.length;
 
-        // After fetching data, initialize the chart
-    setTimeout(() => this.initializeDepartmentChart(), 0);
+        // For each employee, get their department assignments
+        employees.forEach((employee) => {
+          if (employee.id) {
+            this.departmentEmployeeService
+              .getDepartmentsForEmployee(employee.id)
+              .subscribe({
+                next: (employeeDepartments) => {
+                  // Update counts for each department this employee belongs to
+                  employeeDepartments.forEach((dept) => {
+                    const departmentData = departmentMap.get(dept.id);
+                    if (departmentData) {
+                      departmentData.count++;
+                    }
+                  });
+
+                  processedEmployees++;
+                  // Check if all employees have been processed
+                  if (processedEmployees === totalEmployees) {
+                    // Convert map to array for the chart
+                    this.departments = Array.from(departmentMap.values());
+                    // Initialize chart after getting all department data
+                    setTimeout(() => this.initializeDepartmentChart(), 0);
+                  }
+                },
+                error: (error) => {
+                  console.error(
+                    `Error fetching departments for employee ${employee.id}:`,
+                    error
+                  );
+                  processedEmployees++;
+                  // Even if there's an error, check if all employees have been processed
+                  if (processedEmployees === totalEmployees) {
+                    this.departments = Array.from(departmentMap.values());
+                    setTimeout(() => this.initializeDepartmentChart(), 0);
+                  }
+                },
+              });
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error fetching departments:', error);
+        this.statistics.totalDepartments = 0;
+        this.departments = [];
+      },
+    });
   }
 
   private initializeDepartmentChart() {
@@ -327,50 +334,25 @@ export class Dashboard implements OnInit {
       this.departmentChart.destroy();
     }
 
-    if (this.currentUser.role === UserRole.EMPLOYEE) {
-      // Employee-specific chart showing personal metrics
-      this.departmentChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: [
-            'Tasks Completed',
-            'Tasks In Progress',
-            'Pending Reviews',
-            'Leave Days Taken',
-          ],
-          datasets: [
-            {
-              data: [12, 5, 3, 8], // Sample employee metrics
-              backgroundColor: [
-                '#3B82F6', // Blue
-                '#F59E0B', // Yellow
-                '#8B5CF6', // Purple
-                '#10B981', // Green
-              ],
-              borderRadius: 5,
-            },
-          ],
-        },
-      });
-      return;
-    }
-
-    // Admin and HR view showing department distribution
+    // Create new chart
     this.departmentChart = new Chart(ctx, {
       type: 'pie',
       data: {
-        labels: this.departments.map(
-          (dept) =>
-            `${dept.name} (${dept.count}/${
-              this.departmentConfig[dept.name].capacity
-            })`
-        ),
+        labels: this.departments.map((dept) => `${dept.name} (${dept.count})`),
         datasets: [
           {
             data: this.departments.map((dept) => dept.count),
-            backgroundColor: this.departments.map(
-              (dept) => this.departmentConfig[dept.name].color
-            ),
+            backgroundColor: this.departments.map((_, index) => {
+              const colors = [
+                '#3B82F6', // Blue
+                '#10B981', // Green
+                '#F59E0B', // Yellow
+                '#8B5CF6', // Purple
+                '#EC4899', // Pink
+                '#6366F1', // Indigo
+              ];
+              return colors[index % colors.length];
+            }),
             borderColor: '#ffffff',
             borderWidth: 3,
             hoverBorderWidth: 0,
@@ -383,16 +365,12 @@ export class Dashboard implements OnInit {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: {
-          padding: 20,
-        },
         plugins: {
           legend: {
             position: 'right',
             labels: {
               padding: 15,
               usePointStyle: true,
-              pointStyle: 'circle',
               font: {
                 size: 13,
                 family: "'Inter', sans-serif",
@@ -408,24 +386,67 @@ export class Dashboard implements OnInit {
               size: 13,
               family: "'Inter', sans-serif",
             },
-            callbacks: {
-              label: (context) => {
-                const dept = this.departments[context.dataIndex];
-                const capacity = this.departmentConfig[dept.name].capacity;
-                const utilization = ((dept.count / capacity) * 100).toFixed(1);
-                return [
-                  `${dept.name}: ${dept.count} employees`,
-                  `Capacity: ${dept.count}/${capacity} (${utilization}%)`,
-                ];
-              },
-            },
           },
         },
       },
     });
   }
 
-  // Admin & HR Actions
+  private formatDate(date: string | Date | undefined): string {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleDateString();
+  }
+
+  private getTimeAgo(date: Date): string {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    return 'Just now';
+  }
+
+  private updateRecentActivities() {
+    if (this.currentUser.role === UserRole.EMPLOYEE) {
+      this.leaveService
+        .getLeaveRequestsByEmployee(this.currentUser.id)
+        .subscribe({
+          next: (leaves) => {
+            this.recentActivities = leaves.slice(0, 4).map((leave) => ({
+              action: 'Leave Request',
+              details: `Leave request from ${this.formatDate(
+                leave.startDate
+              )} to ${this.formatDate(leave.endDate)} - ${leave.status}`,
+              time: this.getTimeAgo(new Date(leave.startDate || new Date())),
+            }));
+          },
+          error: (error) => {
+            console.error('Error fetching employee leave requests:', error);
+            this.recentActivities = [];
+          },
+        });
+    } else {
+      this.leaveService.getAllLeaveRequests().subscribe({
+        next: (leaves) => {
+          this.recentActivities = leaves.slice(0, 4).map((leave) => ({
+            action: 'Leave Request',
+            details: `Leave Request - ${leave.status}`,
+            time: this.getTimeAgo(new Date(leave.startDate || new Date())),
+          }));
+        },
+        error: (error) => {
+          console.error('Error fetching all leave requests:', error);
+          this.recentActivities = [];
+        },
+      });
+    }
+  }
+
+  // Navigation methods
   private addEmployee(): void {
     this.router.navigate(['/employee-form']);
   }
@@ -438,15 +459,10 @@ export class Dashboard implements OnInit {
     this.router.navigate(['/leave-management']);
   }
 
-  private generatePayslips(): void {
-    this.router.navigate(['/emp-details']);
-  }
-
   private generatePayslip(): void {
     this.router.navigate(['/payslip-form']);
   }
 
-  // Employee Actions
   private applyLeave(): void {
     this.router.navigate(['/leave-form']);
   }
