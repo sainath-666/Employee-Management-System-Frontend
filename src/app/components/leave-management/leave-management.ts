@@ -153,14 +153,12 @@ export class LeaveManagement implements OnInit {
     }
   }
 
-  getDuration(start?: string, end?: string): string {
+  getDuration(start: string | Date | undefined, end: string | Date | undefined): string {
     if (!start || !end) return 'N/A';
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const days =
-      Math.ceil(
-        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-      ) + 1;
+    const startDate = start instanceof Date ? start : new Date(start);
+    const endDate = end instanceof Date ? end : new Date(end);
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
     return `${days} day${days > 1 ? 's' : ''}`;
   }
 
