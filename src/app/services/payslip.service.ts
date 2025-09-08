@@ -1,3 +1,4 @@
+
 import { Injectable } from '@angular/core';
 import {
   HttpClient,
@@ -5,18 +6,28 @@ import {
   HttpErrorResponse,
 } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, retry, map } from 'rxjs/operators';
-import { Payslip } from '../models/payslip.model';
+import { catchError, map, retry } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+
+export interface Payslip {
+  id?: number;
+  employeeId: number;
+  baseSalary: number;
+  allowances: number;
+  deductions: number;
+  createdBy: number;
+  pdfPath?: string;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class PayslipService {
-  private apiUrl = `${environment.apiUrl}/api/Payslips`; // Updated to match the exact URL case
+  private apiUrl = `${environment.apiUrl}/api/Payslips`;
 
   private httpOptions = {
     headers: new HttpHeaders({
+
       'Content-Type': 'application/json',
       Accept: 'application/json',
     }),
@@ -26,20 +37,26 @@ export class PayslipService {
   constructor(private http: HttpClient) {}
 
   private handleError(error: HttpErrorResponse) {
-    let errorMessage = 'An error occurred';
-    if (error.error instanceof ErrorEvent) {
-      // Client-side error
-      errorMessage = error.error.message;
-    } else {
-      // Server-side error
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+    console.error('API Error:', error);
+    let message = 'An unexpected error occurred';
+    
+    if (error.error?.message) {
+      message = error.error.message;
+    } else if (error.status === 0) {
+      message = 'Cannot connect to server';
+    } else if (error.status === 400) {
+      message = 'Invalid data submitted';
+    } else if (error.status === 404) {
+      message = 'API endpoint not found';
     }
-    console.error(errorMessage);
-    return throwError(() => new Error(errorMessage));
+    
+    return throwError(() => new Error(message));
   }
 
-  // Get all payslips
   getAllPayslips(): Observable<Payslip[]> {
+    return this.http.get<Payslip[]>(this.apiUrl, this.httpOptions).pipe(
+      retry(1),
+      catchError(this.handleError)
     console.log('Fetching payslips from:', this.apiUrl);
     return this.http.get<any[]>(this.apiUrl, this.httpOptions).pipe(
       map((response) => {
@@ -83,8 +100,8 @@ export class PayslipService {
     );
   }
 
-  // Get payslip by ID
   getPayslipById(id: number): Observable<Payslip> {
+
     return this.http
       .get<Payslip>(`${this.apiUrl}/${id}`, this.httpOptions)
       .pipe(retry(1), catchError(this.handleError));
@@ -224,17 +241,24 @@ export class PayslipService {
       );
   }
 
-  // Delete payslip
   deletePayslip(id: number): Observable<any> {
-    return this.http
-      .delete(`${this.apiUrl}/${id}`, this.httpOptions)
-      .pipe(catchError(this.handleError));
+
+    return this.http.delete(`${this.apiUrl}/${id}`, this.httpOptions).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  // Upload PDF for a payslip
-  uploadPayslipPdf(id: number, file: File): Observable<any> {
+  uploadPayslipPdf(payslipId: number, file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
+
+    return this.http.post(`${this.apiUrl}/${payslipId}/upload`, formData).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  downloadPdf(id: number): void {
+    window.open(`${this.apiUrl}/${id}/download`, '_blank');
 
     const uploadOptions = {
       headers: new HttpHeaders({
@@ -270,5 +294,6 @@ export class PayslipService {
         alert('Failed to download payslip PDF. Please try again later.');
       },
     });
+
   }
 }

@@ -399,8 +399,10 @@ export class Dashboard implements OnInit {
     this.router.navigate(['/department-form']);
   }
 
-  private manageLeave(): void {
-    this.router.navigate(['/leave-management']);
+
+  private generatePayslips(): void {
+this.router.navigate(['/emp-details']);
+
   }
 
   private generatePayslip(): void {
