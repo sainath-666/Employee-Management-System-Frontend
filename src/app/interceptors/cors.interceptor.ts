@@ -4,12 +4,18 @@ export function corsInterceptor(
   req: HttpRequest<unknown>,
   next: HttpHandlerFn
 ) {
+  // Don't modify Content-Type for FormData requests (file uploads)
+  const isFormData = req.body instanceof FormData;
+  
   const modifiedReq = req.clone({
-    withCredentials: false,
     setHeaders: {
-      'Content-Type': 'application/json',
+      ...(!isFormData ? {
+        'Content-Type': 'application/json',
+      } : {}),
       Accept: 'application/json',
+      'Access-Control-Allow-Origin': '*',
     },
+    withCredentials: false
   });
   return next(modifiedReq);
 }

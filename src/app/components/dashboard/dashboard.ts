@@ -415,7 +415,7 @@ export class Dashboard implements OnInit {
   }
 
   private generatePayslips(): void {
-this.router.navigate(['/payslip-form']);
+this.router.navigate(['/emp-details']);
   }
 
   private approveLeaves(): void {

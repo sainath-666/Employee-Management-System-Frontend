@@ -21,36 +21,22 @@
             </div>
           </div>
 
-          <!-- Pay Period -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Pay Period</label>
-            <input type="text" formControlName="payPeriod" readonly
-                   class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm">
-            <!-- <p class="mt-1 text-sm text-gray-500">Current pay period is set automatically</p> -->
-          </div>
-
-          <!-- Salary -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Salary</label>
-            <input type="number" formControlName="salary" 
-                   class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            <p class="mt-1 text-sm text-gray-500">Enter the salary amount (Base Salary + Allowances will be calculated automatically)</p>
-          </div>
-
           <!-- Base Salary -->
           <div>
-            <label class="block text-sm font-medium text-gray-700">Base Salary (80%)</label>
-            <input type="number" formControlName="BaseSalary" readonly
-                   class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm cursor-not-allowed">
+            <label class="block text-sm font-medium text-gray-700">Base Salary</label>
+            <input type="number" formControlName="baseSalary"
+                   class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                   placeholder="Enter base salary">
           </div>
 
           <!-- Allowances -->
           <div>
             <h3 class="text-lg font-medium text-gray-900">Allowances</h3>
             <div class="mt-4">
-              <label class="block text-sm font-medium text-gray-700">Total Allowances (20%)</label>
-              <input type="number" formControlName="allowances" readonly
-                     class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm cursor-not-allowed">
+              <label class="block text-sm font-medium text-gray-700">Total Allowances</label>
+              <input type="number" formControlName="allowances"
+                     class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                     placeholder="Enter allowances">
             </div>
           </div>
 
@@ -101,7 +87,7 @@
         <!-- Header with Logo and Title -->
         <div style="text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid #e5e7eb;">
           <h2 style="font-size: 1.875rem; font-weight: bold; color: #111827; margin-bottom: 0.5rem;">EMPLOYEE PAYSLIP</h2>
-          <p style="font-size: 1.125rem; color: #4b5563;">{{payslipForm.value.payPeriod}}</p>
+          <p style="font-size: 1.125rem; color: #4b5563;">{{getCurrentDate()}}</p>
         </div>
 
         <!-- Employee Information -->
@@ -118,12 +104,8 @@
           </div>
           <div style="display: flex; flex-direction: column; gap: 1rem;">
             <div>
-              <p style="font-size: 0.875rem; font-weight: 600; color: #4b5563; text-transform: uppercase;">Pay Period</p>
-              <p style="font-size: 1.125rem; font-weight: 500; color: #111827; margin-top: 0.25rem;">{{payslipForm.value.payPeriod}}</p>
-            </div>
-            <div>
-              <p style="font-size: 0.875rem; font-weight: 600; color: #4b5563; text-transform: uppercase;">Payment Date</p>
-              <p style="font-size: 1.125rem; font-weight: 500; color: #111827; margin-top: 0.25rem;">{{payslipForm.value.payPeriod}}</p>
+              <p style="font-size: 0.875rem; font-weight: 600; color: #4b5563; text-transform: uppercase;">Date</p>
+              <p style="font-size: 1.125rem; font-weight: 500; color: #111827; margin-top: 0.25rem;">{{getCurrentDate()}}</p>
             </div>
           </div>
         </div>
@@ -136,7 +118,7 @@
             <div style="display: flex; flex-direction: column; gap: 1rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
                 <span style="color: #374151;">Base Salary</span>
-                <span style="font-weight: 500;">₹ {{payslipForm.value.BaseSalary}}</span>
+                <span style="font-weight: 500;">₹ {{payslipForm.value.baseSalary}}</span>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
                 <span style="color: #374151;">Total Allowances</span>
@@ -144,7 +126,7 @@
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-top: 1px solid #e5e7eb;">
                 <span style="font-weight: 600; color: #111827;">Gross Earnings</span>
-                <span style="font-weight: 700;">₹ {{payslipForm.value.BaseSalary + payslipForm.value.allowances}}</span>
+                <span style="font-weight: 700;">₹ {{payslipForm.value.baseSalary + payslipForm.value.allowances}}</span>
               </div>
             </div>
           </div>

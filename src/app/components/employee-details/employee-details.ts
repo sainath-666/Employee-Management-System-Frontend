@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EmployeeService } from '../../services/employee.service';
 import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 interface Employee {
   id: number;
@@ -36,8 +37,23 @@ export class EmployeeDetails implements OnInit {
 
   constructor(
     private employeeService: EmployeeService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
+
+  isHR(): boolean {
+    return this.authService.isHR();
+  }
+
+  generatePayslip(employee: Employee): void {
+    this.router.navigate(['/payslip-form'], { 
+      queryParams: { 
+        employeeId: employee.id,
+        employeeName: employee.name,
+        employeeCode: employee.employeeCode
+      } 
+    });
+  }
 
   viewEmployee(id: number): void {
     this.router.navigate(['/employee-view'], {

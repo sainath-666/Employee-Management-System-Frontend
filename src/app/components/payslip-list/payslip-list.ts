@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { PayslipService } from '../../services/payslip.service';
-import { Payslip } from '../../models/payslip.model';
+import { PayslipService, Payslip } from '../../services/payslip.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -11,12 +10,20 @@ import { RouterModule } from '@angular/router';
   imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './payslip-list.html'
 })
-export class PayslipList implements OnInit {
+export class PayslipListComponent implements OnInit {
   payslips: Payslip[] = [];
   loading: boolean = false;
   error: string | null = null;
   selectedFile: File | null = null;
   selectedPayslipId: number | null = null;
+
+  getCurrentMonth(): string {
+    return new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+  }
+
+  calculateNetSalary(payslip: Payslip): number {
+    return (payslip.baseSalary + payslip.allowances) - payslip.deductions;
+  }
 
   constructor(private payslipService: PayslipService) {}
 
@@ -30,31 +37,13 @@ export class PayslipList implements OnInit {
 
     this.payslipService.getAllPayslips().subscribe({
       next: (data) => {
-        console.log('Raw data from server:', data);
-        // Transform the data if needed
-        this.payslips = data.map(payslip => ({
-          ...payslip,
-          // Ensure numeric fields have default values if they're null/undefined
-          Salary: payslip.Salary || 0,
-          BaseSalary: payslip.BaseSalary || 0,
-          netSalary: payslip.netSalary || 0
-        }));
-        // Log each payslip after transformation
-        this.payslips.forEach((payslip, index) => {
-          console.log(`Transformed Payslip ${index + 1}:`, {
-            id: payslip.id,
-            employeeId: payslip.employeeId,
-            Salary: payslip.Salary,
-            BaseSalary: payslip.BaseSalary,
-            netSalary: payslip.netSalary
-          });
-        });
+        this.payslips = data;
         this.loading = false;
       },
       error: (err) => {
         this.error = 'Failed to load payslips. Please try again later.';
+        console.error('Load error:', err);
         this.loading = false;
-        console.error('Error:', err);
       }
     });
   }
@@ -67,10 +56,10 @@ export class PayslipList implements OnInit {
           this.payslips = this.payslips.filter(p => p.id !== id);
           this.loading = false;
         },
-        error: (err) => {
+        error: (error: any) => {
           this.error = 'Failed to delete payslip. Please try again later.';
+          console.error('Delete error:', error);
           this.loading = false;
-          console.error('Error:', err);
         }
       });
     }
@@ -90,14 +79,14 @@ export class PayslipList implements OnInit {
       this.payslipService.uploadPayslipPdf(this.selectedPayslipId, this.selectedFile).subscribe({
         next: () => {
           alert('PDF uploaded successfully');
-          this.loading = false;
           this.selectedFile = null;
-          this.loadPayslips(); // Refresh the list
-        },
-        error: (err) => {
-          this.error = 'Failed to upload PDF. Please try again later.';
+          this.loadPayslips();
           this.loading = false;
-          console.error('Error:', err);
+        },
+        error: (error: any) => {
+          this.error = 'Failed to upload PDF.';
+          console.error('Upload error:', error);
+          this.loading = false;
         }
       });
     }
@@ -107,5 +96,50 @@ export class PayslipList implements OnInit {
     this.loading = true;
     this.payslipService.downloadPdf(id);
     this.loading = false;
+  }
+
+  generatePdf(payslip: Payslip): void {
+    const htmlContent = `
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { color: #2c3e50; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
+            th { background-color: #f8f8f8; }
+          </style>
+        </head>
+        <body>
+          <h1>Payslip for Employee #${payslip.employeeId}</h1>
+          <table>
+            <tr><th>Month/Year</th><td>${this.getCurrentMonth()}</td></tr>
+            <tr><th>Base Salary</th><td>₹${payslip.baseSalary}</td></tr>
+            <tr><th>Allowances</th><td>₹${payslip.allowances}</td></tr>
+            <tr><th>Deductions</th><td>₹${payslip.deductions}</td></tr>
+            <tr><th>Net Salary</th><td><strong>₹${this.calculateNetSalary(payslip)}</strong></td></tr>
+          </table>
+        </body>
+      </html>
+    `;
+
+    this.loading = true;
+    if (payslip.id === undefined) {
+      this.error = 'Payslip ID is missing';
+      this.loading = false;
+      return;
+    }
+    this.payslipService.createAndGeneratePdf(payslip).subscribe({
+      next: () => {
+        alert('PDF generated successfully!');
+        this.loadPayslips();
+        this.loading = false;
+      },
+      error: (err: any) => {
+        this.error = 'Failed to generate PDF. Try again.';
+        console.error('Generate PDF error:', err);
+        this.loading = false;
+      }
+    });
   }
 }

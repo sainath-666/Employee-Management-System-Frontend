@@ -1,0 +1,287 @@
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { PayslipService } from '../../services/payslip.service';
+import { Payslip } from '../../models/payslip.model';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
+
+// Define interfaces
+interface Employee {
+  id: string;
+  name: string;
+}
+
+interface DocumentClone extends Document {
+  querySelector(selectors: string): HTMLElement | null;
+}
+
+@Component({
+  selector: 'app-payslip-form',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  templateUrl: './payslip-form.html'
+})
+export class PayslipForm implements OnInit {
+  payslipForm!: FormGroup;
+  isEditMode = false;
+  loading = false;
+  error: string | null = null;
+  months: string[] = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  
+  // Private field for employee
+  private employee: Employee | null = null;
+  #showPreview = false;
+  #currentDate: Date;
+  #payPeriod: string;
+  #employee: Employee | null = null;
+
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly payslipService: PayslipService,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute
+  ) {
+    this.#currentDate = new Date();
+    this.#payPeriod = this.getCurrentPayPeriod();
+  }
+
+  private payslipId: number | null = null;
+
+  ngOnInit(): void {
+    // Initialize form immediately with default values
+    this.initializeForm();
+
+    // Check URL parameters for employee data
+    this.route.queryParams.subscribe(params => {
+      if (params['employeeId'] && params['employeeName']) {
+        this.#employee = {
+          id: params['employeeId'],
+          name: params['employeeName']
+        };
+        this.updateFormWithEmployeeData();
+      }
+    });
+
+    // Check if we're in edit mode
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.isEditMode = true;
+      this.payslipId = parseInt(id);
+      // Load existing payslip data
+      this.payslipService.getPayslipById(this.payslipId).subscribe({
+        next: (payslip) => {
+          // Update the form with existing payslip data
+          this.payslipForm.patchValue({
+            salary: payslip.Salary,
+            BaseSalary: payslip.BaseSalary,
+            allowances: payslip.allowances,
+            deductions: payslip.deductions
+          });
+        },
+        error: (error: any) => {
+          console.error('Error loading payslip:', error);
+          alert('Error loading payslip data. Please try again.');
+        }
+      });
+    }
+  }
+
+  public get showPreview(): boolean {
+    return this.#showPreview;
+  }
+
+  public get currentPayPeriod(): string {
+    return this.#payPeriod;
+  }
+
+  private getCurrentPayPeriod(): string {
+    return this.#currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+  }
+
+  private async fetchEmployeeData(): Promise<void> {
+    // Simulated API call - replace with actual backend call
+    this.#employee = {
+      id: '22',
+      name: 'John Doe'
+    };
+  }
+
+  private updateFormWithEmployeeData(): void {
+    if (this.payslipForm && this.#employee) {
+      this.payslipForm.patchValue({
+        name: this.#employee.name,
+        empId: this.#employee.id,
+        payPeriod: this.#payPeriod
+      });
+    }
+  }
+
+  private initializeForm(): void {
+    this.payslipForm = this.fb.group({
+      name: ['', { disabled: true }],
+      empId: ['', { disabled: true }],
+      payPeriod: [this.#payPeriod, { disabled: true }],
+      salary: [0, [Validators.required, Validators.min(1)]],
+      BaseSalary: [0, [Validators.required, Validators.min(1)]],
+      allowances: [0, [Validators.required, Validators.min(0)]],
+      deductions: [0, [Validators.required, Validators.min(0)]]
+    });
+
+    // Subscribe to changes in salary to update BaseSalary and allowances
+    this.payslipForm.get('salary')?.valueChanges.subscribe(value => {
+      if (value) {
+        const salary = Number(value);
+        // Base salary will be 80% of total salary, allowances 20%
+        const baseSalary = Math.round(salary * 0.8);
+        const allowances = salary - baseSalary;
+        
+        this.payslipForm.patchValue({
+          BaseSalary: baseSalary,
+          allowances: allowances
+        }, { emitEvent: false });
+      }
+    });
+  }
+
+  public updatePayslipPeriod(): void {
+    this.#currentDate = new Date();
+    this.#payPeriod = this.getCurrentPayPeriod();
+    this.payslipForm.patchValue({
+      payPeriod: this.#payPeriod
+    }, { emitEvent: false });
+  }
+
+  public calculateNetSalary(): number {
+    if (!this.payslipForm) {
+      return 0;
+    }
+
+    const values = this.payslipForm.getRawValue();
+    return (values.salary || 0) - (values.deductions || 0);
+  }
+
+  public togglePreview(): void {
+    this.#showPreview = !this.#showPreview;
+  }
+
+  public generatePDF(): void {
+    if (!this.payslipForm.valid) {
+      console.error('Form is not valid');
+      return;
+    }
+
+    // Get the raw form values including disabled fields
+    const formValues = this.payslipForm.getRawValue();
+    console.log('Form values:', formValues);
+    
+    // Make sure all required values are present
+    if (!formValues.empId) {
+      alert('Employee ID is required');
+      return;
+    }
+
+    // Use the employee ID from the form
+    const employeeId = Number(formValues.empId);
+
+    // Validate and convert all numeric fields
+    const BaseSalary = Number(formValues.BaseSalary);
+    const allowances = Number(formValues.allowances);
+    const deductions = Number(formValues.deductions);
+    const Salary = Number(formValues.salary);
+    
+    // Validate numeric values
+    if (isNaN(BaseSalary) || isNaN(allowances) || isNaN(deductions) || isNaN(Salary)) {
+      alert('Invalid numeric values in form');
+      return;
+    }
+
+    if (BaseSalary <= 0 || Salary <= 0) {
+      alert('Salary values must be greater than 0');
+      return;
+    }
+
+    if (allowances < 0 || deductions < 0) {
+      alert('Allowances and deductions cannot be negative');
+      return;
+    }
+
+    // Get month and year from pay period
+    const [month, year] = this.#payPeriod.split(' ');
+
+    // HR's ID is 22 (the logged-in HR user)
+    const hrEmployeeId = 22; // This should come from your auth service in a real app
+
+    // Create payslip data
+    const payslipData: Payslip = {
+      employeeId: employeeId,
+      month: month,
+      year: parseInt(year),
+      Salary: Salary,
+      BaseSalary: BaseSalary,
+      allowances: allowances,
+      deductions: deductions,
+      netSalary: Salary - deductions,
+      createdBy: hrEmployeeId
+    };
+
+    // Generate HTML content for the PDF
+    const htmlContent = `
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { color: #2c3e50; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
+            th { background-color: #f8f8f8; }
+          </style>
+        </head>
+        <body>
+          <h1>Payslip for ${formValues.name}</h1>
+          <table>
+            <tr><th>Employee ID</th><td>${employeeId}</td></tr>
+            <tr><th>Month/Year</th><td>${month} ${year}</td></tr>
+            <tr><th>Base Salary</th><td>₹${BaseSalary}</td></tr>
+            <tr><th>Allowances</th><td>₹${allowances}</td></tr>
+            <tr><th>Deductions</th><td>₹${deductions}</td></tr>
+            <tr><th>Net Salary</th><td><strong>₹${Salary - deductions}</strong></td></tr>
+          </table>
+        </body>
+      </html>
+    `;
+
+    // Call the combined create and generate PDF endpoint
+    this.loading = true;
+    this.payslipService.createAndGeneratePdf(payslipData, htmlContent).subscribe({
+      next: () => {
+        const message = this.isEditMode 
+          ? 'Payslip updated and generated successfully!'
+          : 'Payslip generated successfully!';
+        alert(message);
+        void this.router.navigate(['/payslips']);
+      },
+      error: (error: any) => {
+        console.error('Error generating payslip:', error);
+        let errorMessage = 'Error generating payslip: ';
+        if (error.status === 400) {
+          errorMessage += 'Invalid payslip data. Please check all fields.';
+        } else if (error.status === 401) {
+          errorMessage += 'Please log in again.';
+        } else if (error.error?.message) {
+          errorMessage += error.error.message;
+        } else {
+          errorMessage += 'An unexpected error occurred. Please try again.';
+        }
+        alert(errorMessage);
+      },
+      complete: () => {
+        this.loading = false;
+      }
+    });
+  }
+}
