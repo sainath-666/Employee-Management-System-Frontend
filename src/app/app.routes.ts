@@ -17,6 +17,7 @@ export const routes: Routes = [
   { path: 'leave-form', component: LeaveForm, canActivate: [authGuard] },
   { path: 'payslip-list', component: PayslipList, canActivate: [authGuard] },
   { path: 'employee-form', component: EmployeeForm, canActivate: [authGuard] },
+  { path: 'employee-form/:id', component: EmployeeForm, canActivate: [authGuard] },
   { path: 'leave-management', component:LeaveManagement , canActivate: [authGuard] },
   { path: 'payslip-form', component: PayslipForm, canActivate: [authGuard] },
   { path: 'department-form', component: DepartmentForm, canActivate: [authGuard ] },

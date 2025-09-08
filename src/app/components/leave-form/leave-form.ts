@@ -19,6 +19,8 @@ import { Router } from '@angular/router';
 export class LeaveForm {
   leaveForm: FormGroup;
   minDate: string;
+  successMessage: string = '';
+  errorMessage: string = '';
   leaveTypes = [
     { id: LeaveTypeEnum.Sick, name: 'Sick Leave' },
     { id: LeaveTypeEnum.Casual, name: 'Casual Leave' },
@@ -30,6 +32,7 @@ export class LeaveForm {
 
   numberOfDays: number = 0;
 
+
   constructor(
     private fb: FormBuilder,
     private leaveService: LeaveService,
@@ -37,6 +40,7 @@ export class LeaveForm {
     private snackBar: MatSnackBar,
     private router: Router
   ) {
+
     // Get current date in YYYY-MM-DD format for min date validation
     this.minDate = new Date().toISOString().split('T')[0];
     
@@ -91,6 +95,19 @@ export class LeaveForm {
 
   onSubmit() {
     if (this.leaveForm.valid) {
+
+      // Replace this with your actual API call
+      this.successMessage = 'Leave request submitted successfully!';
+      setTimeout(() => {
+        this.successMessage = '';
+        this.router.navigate(['/dashboard']);
+      }, 1500);
+    }
+  }
+
+  onCancel() {
+    this.router.navigate(['/dashboard']);
+
       const employeeId = this.authService.getCurrentEmployeeId();
       if (!employeeId) {
         this.showNotification('User not authenticated. Please login again.', 'error');
