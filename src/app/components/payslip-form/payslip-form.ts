@@ -9,8 +9,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { PayslipService, Payslip } from '../../services/payslip.service';
 
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+
 import { Observable, Observer } from 'rxjs';
 
 // Define interfaces
@@ -156,6 +155,7 @@ export class PayslipForm implements OnInit {
   }
 
   public generatePDF(): void {
+    console.log('Starting generatePDF...');
     if (!this.payslipForm.valid) {
       const errors = Object.keys(this.payslipForm.controls)
         .filter((key) => this.payslipForm.controls[key].errors)
@@ -278,10 +278,7 @@ export class PayslipForm implements OnInit {
       baseSalary: roundedBaseSalary,
       allowances: roundedAllowances,
       deductions: roundedDeductions,
-      createdBy: 22, // HR ID
-      month: currentDate.toLocaleString('default', { month: 'long' }),
-      year: currentDate.getFullYear(),
-      netSalary: calculatedNetSalary,
+      createdBy: 22 // HR ID
     } as const;
 
     // Additional validations
@@ -307,7 +304,8 @@ export class PayslipForm implements OnInit {
       JSON.stringify(payslipData, null, 2)
     );
 
-    const observer: Observer<any> = {
+    // Create payslip and generate PDF in one call
+    this.payslipService.createAndGeneratePdf(payslipData).subscribe({
       next: (response) => {
         console.log('Server response:', response);
         alert('Payslip generated successfully!');
@@ -315,50 +313,29 @@ export class PayslipForm implements OnInit {
       },
       error: (error: any) => {
         console.error('Full error object:', error);
-
-        let errorMessage: string;
-        if (error instanceof Error) {
-          // Direct error message from our service
-          errorMessage = 'Error generating payslip: ' + error.message;
-        } else if (error.status === 0) {
-          errorMessage =
-            'Error generating payslip: Cannot connect to server. Is the backend running?';
+        let errorMessage = 'An unexpected error occurred';
+        
+        if (error.status === 0) {
+          errorMessage = 'Cannot connect to server. Is the backend running?';
         } else if (error.status === 400) {
-          const validationErrors =
-            error.error?.errors ||
-            error.error?.message ||
-            'Invalid payslip data';
-          if (typeof validationErrors === 'object') {
-            errorMessage =
-              'Error generating payslip: ' +
-              Object.values(validationErrors).join('\n');
-          } else {
-            errorMessage = 'Error generating payslip: ' + validationErrors;
-          }
+          errorMessage = error.error?.message || 'Invalid data submitted';
         } else if (error.status === 401) {
-          errorMessage = 'Error generating payslip: Please log in again.';
+          errorMessage = 'Please log in again.';
         } else if (error.error?.message) {
-          errorMessage = 'Error generating payslip: ' + error.error.message;
-        } else {
-          errorMessage =
-            'Error generating payslip: An unexpected error occurred. Please try again.';
+          errorMessage = error.error.message;
         }
 
-        // Log the full error context
         console.error('Error context:', {
           errorMessage,
           originalError: error,
           formValues: this.payslipForm?.value,
         });
 
-        alert(errorMessage);
+        alert('Error generating payslip: ' + errorMessage);
       },
       complete: () => {
         this.loading = false;
-        console.log('Request completed');
-      },
-    };
-
-    this.payslipService.createPayslip(payslipData).subscribe(observer);
+      }
+    });
   }
 }
