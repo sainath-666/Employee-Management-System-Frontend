@@ -72,9 +72,9 @@ export class EmployeeForm implements OnInit, OnChanges {
     this.initializeForm();
     this.loadRoles();
     this.loadDepartments();
-    
+
     // Check if we're editing an existing employee
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
       if (id) {
         this.isEditMode = true;
@@ -85,21 +85,23 @@ export class EmployeeForm implements OnInit, OnChanges {
             this.employee = employee;
             this.populateForm();
             // Load employee departments
-            this.departmentEmployeeService.getDepartmentsForEmployee(parseInt(id, 10)).subscribe({
-              next: (departments) => {
-                this.selectedDepartments = departments.map(d => d.id);
-                this.isLoading = false;
-              },
-              error: (error) => {
-                console.error('Error loading departments:', error);
-                this.isLoading = false;
-              }
-            });
+            this.departmentEmployeeService
+              .getDepartmentsForEmployee(parseInt(id, 10))
+              .subscribe({
+                next: (departments) => {
+                  this.selectedDepartments = departments.map((d) => d.id);
+                  this.isLoading = false;
+                },
+                error: (error) => {
+                  console.error('Error loading departments:', error);
+                  this.isLoading = false;
+                },
+              });
           },
           error: (error) => {
             console.error('Error loading employee:', error);
             this.isLoading = false;
-          }
+          },
         });
       }
     });
@@ -199,49 +201,62 @@ export class EmployeeForm implements OnInit, OnChanges {
     const isOwnProfile = this.isEditMode && currentUserId === this.employee?.id;
 
     this.employeeForm = this.fb.group({
-      employeeCode: [{
-        value: '',
-        disabled: isOwnProfile
-      }, [
-        Validators.required,
-        Validators.maxLength(20),
-        Validators.pattern(/^[A-Za-z0-9]+$/),
-      ]],
-      name: ['', [
-        Validators.required,
-        Validators.maxLength(150),
-        Validators.pattern(/^[a-zA-Z\s]+$/),
-      ]],
-      email: ['', [
-        Validators.required,
-        Validators.email,
-        Validators.maxLength(150),
-      ]],
-      mobileNumber: ['', [
-        Validators.required,
-        Validators.pattern(/^[0-9]{10,15}$/),
-        Validators.maxLength(15),
-      ]],
+      employeeCode: [
+        {
+          value: '',
+          disabled: isOwnProfile,
+        },
+        [
+          Validators.required,
+          Validators.maxLength(20),
+          Validators.pattern(/^[A-Za-z0-9]+$/),
+        ],
+      ],
+      name: [
+        '',
+        [
+          Validators.required,
+          Validators.maxLength(150),
+          Validators.pattern(/^[a-zA-Z\s]+$/),
+        ],
+      ],
+      email: [
+        '',
+        [Validators.required, Validators.email, Validators.maxLength(150)],
+      ],
+      mobileNumber: [
+        '',
+        [
+          Validators.required,
+          Validators.pattern(/^[0-9]{10,15}$/),
+          Validators.maxLength(15),
+        ],
+      ],
       gender: ['', Validators.required],
       dob: [''],
-      roleId: [{
-        value: '',
-        disabled: isOwnProfile
-      }, [
-        Validators.required,
-        (control: AbstractControl) => {
-          const value = control.value;
-          if (!value) return null;
-          const numValue = Number(value);
-          return !isNaN(numValue) && Number.isInteger(numValue)
-            ? null
-            : { invalidRole: true };
+      roleId: [
+        {
+          value: '',
+          disabled: isOwnProfile,
         },
-      ]],
-      status: [{
-        value: true,
-        disabled: isOwnProfile
-      }],
+        [
+          Validators.required,
+          (control: AbstractControl) => {
+            const value = control.value;
+            if (!value) return null;
+            const numValue = Number(value);
+            return !isNaN(numValue) && Number.isInteger(numValue)
+              ? null
+              : { invalidRole: true };
+          },
+        ],
+      ],
+      status: [
+        {
+          value: true,
+          disabled: isOwnProfile,
+        },
+      ],
     });
 
     // Set password as required for create mode
@@ -306,19 +321,19 @@ export class EmployeeForm implements OnInit, OnChanges {
         // Load employee departments
         this.departmentEmployeeService.getDepartmentsForEmployee(id).subscribe({
           next: (departments) => {
-            this.selectedDepartments = departments.map(d => d.id);
+            this.selectedDepartments = departments.map((d) => d.id);
             this.isLoading = false;
           },
           error: (error) => {
             console.error('Error loading departments:', error);
             this.isLoading = false;
-          }
+          },
         });
       },
       error: (error) => {
         console.error('Error loading employee:', error);
         this.isLoading = false;
-      }
+      },
     });
   }
 
@@ -525,7 +540,8 @@ export class EmployeeForm implements OnInit, OnChanges {
         const raw = typeof errorMessage === 'string' ? errorMessage : '';
 
         if (raw.includes('UNIQUE KEY') || raw.includes('2627')) {
-          this.errorMessage = 'Employee code already exists. Please use a different code.';
+          this.errorMessage =
+            'Employee code already exists. Please use a different code.';
         } else if (raw.includes('Unauthorized') || error.status === 401) {
           this.errorMessage = 'You are not authorized to make these changes.';
         } else if (raw.includes('Invalid data') || error.status === 400) {
@@ -611,7 +627,6 @@ export class EmployeeForm implements OnInit, OnChanges {
   private createFormData(): FormData {
     const formData = new FormData();
 
-    
     // Use getRawValue() to get all form values including disabled fields
     const formValue = this.employeeForm.getRawValue();
 
@@ -632,23 +647,23 @@ export class EmployeeForm implements OnInit, OnChanges {
     if (!this.isEditMode) {
       const mobile = formValue.mobileNumber;
 
-    const formValues = this.employeeForm.value;
+      const formValues = this.employeeForm.value;
 
-    // Add required fields first
-    formData.append('employeeCode', formValues.employeeCode || '');
-    formData.append('name', formValues.name || '');
-    formData.append('email', formValues.email || '');
-    formData.append('mobileNumber', formValues.mobileNumber || '');
-    formData.append('gender', formValues.gender || '');
-    formData.append('roleId', formValues.roleId?.toString() || '');
+      // Add required fields first
+      formData.append('employeeCode', formValues.employeeCode || '');
+      formData.append('name', formValues.name || '');
+      formData.append('email', formValues.email || '');
+      formData.append('mobileNumber', formValues.mobileNumber || '');
+      formData.append('gender', formValues.gender || '');
+      formData.append('roleId', formValues.roleId?.toString() || '');
 
-    // Add optional fields
-    if (formValues.dob) {
-      formData.append('dob', formValues.dob);
-    }
+      // Add optional fields
+      if (formValues.dob) {
+        formData.append('dob', formValues.dob);
+      }
 
-    // Add status
-    formData.append('status', (formValues.status ?? true).toString());
+      // Add status
+      formData.append('status', (formValues.status ?? true).toString());
 
       if (mobile) {
         formData.append('password', mobile);
@@ -669,7 +684,7 @@ export class EmployeeForm implements OnInit, OnChanges {
     }
 
     // Log the data being sent
-    console.log('Form Values:', formValues);
+    console.log('Form Values:', formValue);
     console.log('Selected Departments:', this.selectedDepartments);
 
     // Log each key-value pair in FormData
