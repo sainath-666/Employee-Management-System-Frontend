@@ -28,6 +28,9 @@
                          <a (click)="navigate('/payslip-list');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                         Payslips
                         </a>
+                         <a (click)="navigate('/leave-management');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Leave Status
+                        </a>
                     }
 
                     @if(roleid==9){
@@ -37,7 +40,7 @@
                          <a (click)="navigate('/leave-management');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                         Manage Leave
                         </a>
-                         <a (click)="navigate('/payslip-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                         <a (click)="navigate('/emp-details');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                         Payslips
                         </a>
                     }
@@ -52,9 +55,6 @@
                          <a (click)="navigate('/emp-details');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
                             Manage Employees
                         </a>
-                         <a (click)="navigate('/leave-management');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                        Manage Leave
-                        </a>
                     }
                 </div>
             </div>
@@ -64,10 +64,11 @@
                 <div class="ml-4 flex items-center space-x-4">
                     <!-- Profile Dropdown -->
                     <div class="relative">
-                        <button class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full">
+                        <button (click)="viewProfile()" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full">
                             <img class="h-8 w-8 rounded-full border-2 border-gray-200"
-                                 src="assets/images/default-user.png"
-                                 alt="Profile">
+                                 [src]="profilePhotoUrl || 'assets/images/default-user.png'"
+                                 [alt]="userName + '\'s profile photo'"
+                                 title="Click to view profile">
                             <span class="text-sm font-medium">{{userName}}</span>
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -114,12 +115,12 @@
 
         </div>
              <div class="relative">
-                        <button class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full">
+                        <button (click)="viewProfile()" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full">
                             <img class="h-8 w-8 rounded-full border-2 border-gray-200"
-                                 src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                                 alt="Profile">
-                            <span class="text-sm font-medium">John Doe</span>
-
+                                 [src]="profilePhotoUrl || 'assets/images/default-user.png'"
+                                 [alt]="userName + '\'s profile photo'"
+                                 title="Click to view profile">
+                            <span class="text-sm font-medium">{{userName}}</span>
                         </button>
                     </div>
 

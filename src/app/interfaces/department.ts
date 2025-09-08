@@ -2,8 +2,8 @@ export interface Department {
   id: number;
   departmentName: string;
   status: boolean;
-  createdBy?: number;
-  createdDateTime: string;   // DateTime → ISO string
-  updatedBy?: number;
-  updatedDateTime?: string;
+  createdBy?: number | null;
+  createdDateTime?: string;
+  updatedBy?: number | null;
+  updatedDateTime?: string | null;
 }
