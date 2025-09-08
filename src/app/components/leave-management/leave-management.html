@@ -1,7 +1,12 @@
 <div class="container">
   <!-- Header -->
   <div class="header">
-    <h1>Leave Management</h1>
+    @if (isHr) {
+      <h1>HR Leave Management</h1>
+    }
+    @if (!isHr) {
+    <h1>Leave Status</h1>
+    }
   </div>
 
   <!-- Loading Spinner -->

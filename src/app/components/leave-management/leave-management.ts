@@ -21,15 +21,15 @@ interface LeaveRequest extends Omit<ServiceLeaveRequest, 'statusColor'> {
   statusColor?: string;
 }
 
-type Department = {
+interface Department {
   id: number;
   departmentName: string;
   status: boolean;
-  createdBy?: number | null;
-  createdDateTime?: string;
-  updatedBy?: number | null;
-  updatedDateTime?: string | null;
-};
+  createdBy: number | null;
+  createdDateTime: string;
+  updatedBy: number | null;
+  updatedDateTime: string | null;
+}
 
 @Component({
   selector: 'app-leave-management',
@@ -99,20 +99,38 @@ export class LeaveManagement implements OnInit {
       .getDepartmentsForEmployee(employeeId)
       .subscribe({
         next: (departments: Department[]) => {
-          console.log('Received departments:', departments);
-          if (departments.length > 0) {
+          console.log(
+            'Received departments for employee',
+            employeeId,
+            ':',
+            departments
+          );
+          if (departments && departments.length > 0) {
+            // Create a list of department names, filtered to remove any null or undefined values
             const departmentNames = departments
               .filter((dept) => dept && dept.departmentName)
               .map((dept) => dept.departmentName)
               .join(', ');
+
+            console.log(
+              'Department names for employee',
+              employeeId,
+              ':',
+              departmentNames
+            );
             this.employeeDepartments.set(employeeId, departmentNames);
           } else {
+            console.log('No departments found for employee', employeeId);
             this.employeeDepartments.set(employeeId, 'No Department');
           }
-          console.log('Updated departments map:', this.employeeDepartments);
         },
         error: (error) => {
-          console.error('Error loading departments:', error);
+          console.error(
+            'Error loading departments for employee',
+            employeeId,
+            ':',
+            error
+          );
           this.employeeDepartments.set(employeeId, 'Error loading departments');
           this.showNotification('Error loading employee departments', 'error');
         },
@@ -131,57 +149,40 @@ export class LeaveManagement implements OnInit {
 
         const currentEmployeeId = this.authService.getCurrentEmployeeId();
 
+        // Filter requests based on user role
         this.leaveRequests = requests
+          .filter(
+            (request) => this.isHr || request.employeeId === currentEmployeeId
+          )
           .map((request) => ({
             ...request,
             statusColor: this.getStatusColor(request.status),
-          }))
-          .filter(
-            (request) => this.isHr || request.employeeId === currentEmployeeId
-          );
+          }));
 
-        // Load employee names and departments
+        // Get unique employee IDs
         const uniqueEmployeeIds = [
           ...new Set(this.leaveRequests.map((r) => r.employeeId)),
         ];
 
-        uniqueEmployeeIds.forEach((id) => {
+        // Load data for each unique employee
+        uniqueEmployeeIds.forEach((employeeId) => {
+          if (!employeeId) return;
+
           // Load employee name
-          this.employeeService.getEmployeeById(id).subscribe({
+          this.employeeService.getEmployeeById(employeeId).subscribe({
             next: (employee) => {
               console.log('Received employee:', employee);
-              this.employeeNames.set(id, employee.name);
+              this.employeeNames.set(employeeId, employee.name);
             },
             error: (error) => {
               console.error('Error loading employee:', error);
-              this.employeeNames.set(id, `Employee ${id}`);
+              this.employeeNames.set(employeeId, `Employee ${employeeId}`);
             },
           });
 
           // Load department if user is HR
           if (this.isHr) {
-            this.departmentEmployeeService
-              .getDepartmentsForEmployee(id)
-              .subscribe({
-                next: (departments: Department[]) => {
-                  if (departments.length > 0) {
-                    const departmentNames = departments
-                      .map((dept) => dept.departmentName)
-                      .join(', ');
-                    this.employeeDepartments.set(id, departmentNames);
-                  } else {
-                    this.employeeDepartments.set(id, 'No Department');
-                  }
-                },
-                error: (error) => {
-                  console.error(
-                    'Error loading departments for employee:',
-                    id,
-                    error
-                  );
-                  this.employeeDepartments.set(id, 'Error loading department');
-                },
-              });
+            this.loadEmployeeDepartment(employeeId);
           }
         });
 
