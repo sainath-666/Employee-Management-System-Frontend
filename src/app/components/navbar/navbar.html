@@ -1,178 +1,353 @@
 <!-- Navigation Bar -->
-<nav class="bg-white shadow-lg border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-
-            <!-- Logo Section (Left) -->
-            <div class="flex items-center">
-                <div class="flex-shrink-0 flex items-center">
-                    <svg class="h-8 w-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
-                    </svg>
-                    <span class="ml-2 text-xl font-bold text-gray-900">CompanyName</span>
-                </div>
-            </div>
-
-            <!-- Navigation Items (Middle) -->
-            <div class="hidden md:block">
-                <div class="ml-10 flex items-baseline space-x-8">
-
-
-                    @if(roleid==2){
-                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                        Dashboard
-                        </a>
-                        <a (click)="navigate('/leave-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                        Leave Request
-                        </a>
-                         <a (click)="navigate('/payslip-list');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                        Payslips
-                        </a>
-                         <a (click)="navigate('/leave-management');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                        Leave Status
-                        </a>
-                    }
-
-                    @if(roleid==9){
-                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                             Dashboard
-                        </a>
-                         <a (click)="navigate('/leave-management');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                        Manage Leave
-                        </a>
-                         <a (click)="navigate('/emp-details');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                        Payslips
-                        </a>
-                    }
-
-                    @if(roleid==10){
-                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                             Dashboard
-                        </a>
-                        <a (click)="navigate('/department-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                            Manage Departments
-                        </a>
-                         <a (click)="navigate('/emp-details');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                            Manage Employees
-                        </a>
-                    }
-                </div>
-            </div>
-
-            <!-- Profile and Logout Section (Right) -->
-            <div class="hidden md:block">
-                <div class="ml-4 flex items-center space-x-4">
-                    <!-- Profile Dropdown -->
-                    <div class="relative">
-                        <button (click)="viewProfile()" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full">
-                            <img class="h-8 w-8 rounded-full border-2 border-gray-200"
-                                 [src]="profilePhotoUrl || 'assets/images/default-user.png'"
-                                 [alt]="userName + '\'s profile photo'"
-                                 title="Click to view profile">
-                            <span class="text-sm font-medium">{{userName}}</span>
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <!-- Logout Button -->
-                    <button (click)="logout()" class="text-gray-600 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2 hover:bg-red-50 transition-colors duration-200">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                        </svg>
-                        <span>Logout</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Mobile menu button -->
-            <div class="md:hidden">
-                <button (click)="openSidebar()" id="mobile-menu-button" class="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 p-2">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                </button>
-            </div>
+<nav
+  class="bg-gradient-to-r from-blue-50 to-white shadow-md border-b border-gray-200 fixed w-full top-0 z-[1000]"
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <!-- Logo Section (Left) -->
+      <div class="flex items-center">
+        <div
+          class="flex-shrink-0 flex items-center group hover:scale-105 transition-transform duration-200 cursor-pointer"
+        >
+          <svg
+            class="h-9 w-9 text-blue-600 transform group-hover:rotate-12 transition-transform duration-300"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"
+            />
+          </svg>
+          <span
+            class="ml-2 text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent"
+            >CompanyName</span
+          >
         </div>
+      </div>
+
+      <!-- Navigation Items (Middle) -->
+      <div class="hidden md:block">
+        <div class="ml-10 flex items-baseline space-x-6">
+          @if(roleid==2){
+          <a
+            (click)="navigate('/dashboard')"
+            class="group relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
+          >
+            <span>Dashboard</span>
+            <span
+              class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 cursor-pointer"
+            ></span>
+          </a>
+          <a
+            (click)="navigate('/leave-form')"
+            class="group relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
+          >
+            <span>Leave Request</span>
+            <span
+              class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 cursor-pointer"
+            ></span>
+          </a>
+          <a
+            (click)="navigate('/payslip-list')"
+            class="group relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
+          >
+            <span>Payslips</span>
+            <span
+              class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 cursor-pointer"
+            ></span>
+          </a>
+          <a
+            (click)="navigate('/leave-management')"
+            class="group relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
+          >
+            <span>Leave Status</span>
+            <span
+              class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 cursor-pointer"
+            ></span>
+          </a>
+          } @if(roleid==9){
+          <a
+            (click)="navigate('/dashboard')"
+            class="group relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
+          >
+            <span>Dashboard</span>
+            <span
+              class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 cursor-pointer"
+            ></span>
+          </a>
+          <a
+            (click)="navigate('/leave-management')"
+            class="group relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
+          >
+            <span>Manage Leave</span>
+            <span
+              class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 cursor-pointer"
+            ></span>
+          </a>
+          <a
+            (click)="navigate('/emp-details')"
+            class="group relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
+          >
+            <span>Payslips</span>
+            <span
+              class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 cursor-pointer"
+            ></span>
+          </a>
+          } @if(roleid==10){
+          <a
+            (click)="navigate('/dashboard')"
+            class="group relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
+          >
+            <span>Dashboard</span>
+            <span
+              class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 cursor-pointer"
+            ></span>
+          </a>
+          <a
+            (click)="navigate('/department-form')"
+            class="group relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
+          >
+            <span>Manage Departments</span>
+            <span
+              class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 cursor-pointer"
+            ></span>
+          </a>
+          <a
+            (click)="navigate('/emp-details')"
+            class="group relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
+          >
+            <span>Manage Employees</span>
+            <span
+              class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 cursor-pointer"
+            ></span>
+          </a>
+          }
+        </div>
+      </div>
+
+      <!-- Profile and Logout Section (Right) -->
+      <div class="hidden md:block">
+        <div class="ml-4 flex items-center space-x-4">
+          <!-- Profile Dropdown -->
+          <div class="relative">
+            <button
+              (click)="viewProfile()"
+              class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full transition duration-200 ease-in-out transform hover:scale-105 cursor-pointer"
+            >
+              <img
+                class="h-8 w-8 rounded-full border-2 border-blue-200 hover:border-blue-400 transition-colors duration-200"
+                [src]="profilePhotoUrl || 'assets/images/default-user.png'"
+                [alt]="userName + '\'s profile photo'"
+                title="Click to view profile"
+              />
+              <span class="text-sm font-medium">{{ userName }}</span>
+              <svg
+                class="h-4 w-4 text-blue-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Logout Button -->
+          <button
+            (click)="logout()"
+            class="text-gray-600 hover:text-red-600 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 hover:bg-red-50 transition-all duration-200 transform hover:-translate-y-0.5 cursor-pointer"
+          >
+            <svg
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile menu button -->
+      <div class="md:hidden">
+        <button
+          (click)="openSidebar()"
+          id="mobile-menu-button"
+          class="text-gray-600 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 p-2 rounded-lg transition-colors duration-200 cursor-pointer"
+        >
+          <svg
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
+      </div>
     </div>
+  </div>
 </nav>
 
 <!-- Sidebar (Mobile only) -->
-<div id="mobile-sidebar" class="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-50 transform transition-transform duration-300 md:hidden">
-    <div class="p-4">
-        <div class="flex items-center justify-between mb-6">
-            <span class="text-xl font-bold text-gray-800">Menu</span>
-            <button (click)="closeSidebar()" class="text-gray-500 hover:text-gray-800">
-                ✕
-            </button>
-        </div>
-
-        <!-- Sidebar Nav Links -->
-        <nav class="space-y-4">
-             <!-- Mobile Profile -->
-        <div class="mt-4">
-
-        </div>
-             <div class="relative">
-                        <button (click)="viewProfile()" class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full">
-                            <img class="h-8 w-8 rounded-full border-2 border-gray-200"
-                                 [src]="profilePhotoUrl || 'assets/images/default-user.png'"
-                                 [alt]="userName + '\'s profile photo'"
-                                 title="Click to view profile">
-                            <span class="text-sm font-medium">{{userName}}</span>
-                        </button>
-                    </div>
-
-                   @if(roleid==2){
-                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                        Dashboard
-                        </a>
-                        <a (click)="navigate('/leave-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                        Leave Request
-                        </a>
-                         <a (click)="navigate('/payslip-list');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                        Payslips
-                        </a>
-                    }
-
-                    @if(roleid==9){
-                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                             Dashboard
-                        </a>
-                         <a (click)="navigate('/leave-management');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                        Manage Leave
-                        </a>
-                         <a (click)="navigate('/payslip-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                        Payslips
-                        </a>
-                    }
-
-                    @if(roleid==10){
-                        <a (click)="navigate('/dashboard');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                             Dashboard
-                        </a>
-                        <a (click)="navigate('/department-form');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                            Manage Departments
-                        </a>
-                         <a (click)="navigate('/emp-details');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                            Manage Employees
-                        </a>
-                         <a (click)="navigate('/leave-management');" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                        Manage Leave
-                        </a>
-                    }
-        </nav>
-
-        <!-- Divider -->
-        <hr class="my-4">
-
-        <!-- Logout -->
-        <button (click)="logout()" class="mt-4 w-full flex items-center space-x-2 text-red-600 hover:text-red-800 font-medium">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-            </svg>
-            <span>Logout</span>
-        </button>
+<div
+  id="mobile-sidebar"
+  class="fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-white to-blue-50 border-r border-gray-200 z-50 transform transition-all duration-300 ease-in-out md:hidden shadow-lg"
+>
+  <div class="p-6">
+    <div class="flex items-center justify-between mb-8">
+      <span
+        class="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent"
+        >Menu</span
+      >
+      <button
+        (click)="closeSidebar()"
+        class="text-gray-500 hover:text-blue-600 transition-colors duration-200 rounded-full p-2 hover:bg-blue-50"
+      >
+        <svg
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
     </div>
+
+    <!-- Sidebar Nav Links -->
+    <nav class="space-y-6">
+      <!-- Mobile Profile -->
+      <div class="pb-6 border-b border-gray-200">
+        <button
+          (click)="viewProfile()"
+          class="flex items-center space-x-3 w-full p-2 rounded-lg hover:bg-blue-50 transition-all duration-200"
+        >
+          <img
+            class="h-10 w-10 rounded-full border-2 border-blue-200 hover:border-blue-400 transition-colors duration-200"
+            [src]="profilePhotoUrl || 'assets/images/default-user.png'"
+            [alt]="userName + '\'s profile photo'"
+            title="Click to view profile"
+          />
+          <div class="flex flex-col">
+            <span class="text-sm font-medium text-gray-900">{{
+              userName
+            }}</span>
+            <span class="text-xs text-gray-500">View Profile</span>
+          </div>
+        </button>
+      </div>
+
+      @if(roleid==2){
+      <a
+        (click)="navigate('/dashboard')"
+        class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600"
+      >
+        Dashboard
+      </a>
+      <a
+        (click)="navigate('/leave-form')"
+        class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600"
+      >
+        Leave Request
+      </a>
+      <a
+        (click)="navigate('/payslip-list')"
+        class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600"
+      >
+        Payslips
+      </a>
+      } @if(roleid==9){
+      <a
+        (click)="navigate('/dashboard')"
+        class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600"
+      >
+        Dashboard
+      </a>
+      <a
+        (click)="navigate('/leave-management')"
+        class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600"
+      >
+        Manage Leave
+      </a>
+      <a
+        (click)="navigate('/payslip-form')"
+        class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600"
+      >
+        Payslips
+      </a>
+      } @if(roleid==10){
+      <a
+        (click)="navigate('/dashboard')"
+        class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600"
+      >
+        Dashboard
+      </a>
+      <a
+        (click)="navigate('/department-form')"
+        class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600"
+      >
+        Manage Departments
+      </a>
+      <a
+        (click)="navigate('/emp-details')"
+        class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600"
+      >
+        Manage Employees
+      </a>
+      <a
+        (click)="navigate('/leave-management')"
+        class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600"
+      >
+        Manage Leave
+      </a>
+      }
+    </nav>
+
+    <!-- Divider -->
+    <div class="border-t border-gray-200 my-6"></div>
+
+    <!-- Logout -->
+    <button
+      (click)="logout()"
+      class="w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 transition-all duration-200 transform hover:scale-[1.02]"
+    >
+      <svg
+        class="h-5 w-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+        />
+      </svg>
+      <span class="font-medium">Logout</span>
+    </button>
+  </div>
 </div>
