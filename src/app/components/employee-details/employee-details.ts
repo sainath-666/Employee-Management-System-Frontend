@@ -11,7 +11,7 @@ interface Employee {
   name: string;
   email: string;
   mobileNumber: string;
-  profilePhoto: string;
+  profileUrl: string;
   role: string;
   status: string;
   gender: string;
@@ -44,7 +44,7 @@ export class EmployeeDetails implements OnInit {
   isHR(): boolean {
     return this.authService.isHR();
   }
-
+  imageUrl?: string;
   generatePayslip(employee: Employee): void {
     this.router.navigate(['/payslip-form'], { 
       queryParams: { 
@@ -63,7 +63,10 @@ export class EmployeeDetails implements OnInit {
 
   ngOnInit(): void {
     this.loadEmployees();
+    this.imageUrl = this.employeeService.imageApiUrl;
   }
+
+  
 
   loadEmployees(): void {
     this.employeeService.getAllEmployees().subscribe({
@@ -74,11 +77,15 @@ export class EmployeeDetails implements OnInit {
           name: emp.name,
           email: emp.email,
           mobileNumber: emp.mobileNumber,
-          profilePhoto: emp.profilePhoto || 'assets/images/default-user.png',
-          role: emp.role,
+          // Build absolute image URL or fallback to default avatar
+          profileUrl: emp.profilePhotoPath
+            ? `${this.employeeService.imageApiUrl}${emp.profilePhotoPath}`
+            : 'assets/images/profi.webp',
+          role: emp.role ?? emp.roleName ?? '',
           status: emp.status,
           gender: emp.gender,
         }));
+        console.log(this.employees);
         this.applyFilters(); // Apply initial filters
       },
       error: (error) => {
@@ -86,6 +93,13 @@ export class EmployeeDetails implements OnInit {
       },
     });
   }
+
+  // onImgError(event: Event): void {
+  //   const img = event.target as HTMLImageElement;
+  //   // Prevent infinite error loop
+  //   (img as any).onerror = null;
+  //   img.src = 'assets/images/profi.webp';
+  // }
 
   protected applyFilters(): void {
     let filtered = [...this.employees];

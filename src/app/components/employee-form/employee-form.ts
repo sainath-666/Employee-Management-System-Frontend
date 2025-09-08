@@ -48,6 +48,7 @@ export class EmployeeForm implements OnInit, OnChanges {
   selectedFile: File | null = null;
   previewUrl: string | null = null;
   selectedDepartments: number[] = [];
+  private initialDepartmentIds: number[] = [];
 
   genderOptions = [
     { value: 'Male', label: 'Male' },
@@ -89,7 +90,9 @@ export class EmployeeForm implements OnInit, OnChanges {
               .getDepartmentsForEmployee(parseInt(id, 10))
               .subscribe({
                 next: (departments) => {
-                  this.selectedDepartments = departments.map((d) => d.id);
+                  const ids = departments.map((d) => d.id);
+                  this.selectedDepartments = Array.from(new Set(ids));
+                  this.initialDepartmentIds = [...this.selectedDepartments];
                   this.isLoading = false;
                 },
                 error: (error) => {
@@ -257,21 +260,10 @@ export class EmployeeForm implements OnInit, OnChanges {
           disabled: isOwnProfile,
         },
       ],
+      password: ['']
     });
 
-    // Set password as required for create mode
-    // if (!this.isEditMode) {
-    //   this.employeeForm.get('password')?.setValidators([
-    //     Validators.required,
-    //     Validators.minLength(8),
-    //     Validators.pattern(/^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[@$!%?&])[A-Za-z\d@$!%?&]/)
-    //   ]);
-    // } else {
-    //   this.employeeForm.get('password')?.setValidators([
-    //     Validators.minLength(8),
-    //     Validators.pattern(/^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[@$!%?&])[A-Za-z\d@$!%?&]/)
-    //   ]);
-    // }
+    // No validators for password; optional in edit, hidden in create
   }
 
   private populateForm(): void {
@@ -306,7 +298,7 @@ export class EmployeeForm implements OnInit, OnChanges {
       });
 
       if (this.employee.profilePhotoPath) {
-        this.previewUrl = this.employee.profilePhotoPath;
+        this.previewUrl = this.employeeService.imageApiUrl + this.employee.profilePhotoPath;
       }
     }
   }
@@ -321,7 +313,9 @@ export class EmployeeForm implements OnInit, OnChanges {
         // Load employee departments
         this.departmentEmployeeService.getDepartmentsForEmployee(id).subscribe({
           next: (departments) => {
-            this.selectedDepartments = departments.map((d) => d.id);
+            const ids = departments.map((d) => d.id);
+            this.selectedDepartments = Array.from(new Set(ids));
+            this.initialDepartmentIds = [...this.selectedDepartments];
             this.isLoading = false;
           },
           error: (error) => {
@@ -559,10 +553,22 @@ export class EmployeeForm implements OnInit, OnChanges {
     const validDepartmentIds = this.selectedDepartments.filter((id) =>
       this.departments.some((dept) => dept.id === id)
     );
+    const uniqueDepartmentIds = Array.from(new Set(validDepartmentIds));
+
+    // In edit mode, if nothing changed, skip reassign
+    if (this.isEditMode) {
+      const a = [...uniqueDepartmentIds].sort((x, y) => x - y);
+      const b = [...this.initialDepartmentIds].sort((x, y) => x - y);
+      const equal = a.length === b.length && a.every((v, i) => v === b[i]);
+      if (equal) {
+        this.formSubmit.emit();
+        return;
+      }
+    }
 
     const departmentRequest: DepartmentEmployeeRequest = {
       employeeId: employeeId,
-      departmentIds: validDepartmentIds,
+      departmentIds: uniqueDepartmentIds,
     };
 
     this.departmentEmployeeService
@@ -573,6 +579,8 @@ export class EmployeeForm implements OnInit, OnChanges {
           this.successMessage = 'Employee and departments saved successfully!';
           setTimeout(() => (this.successMessage = ''), 3000);
           this.formSubmit.emit();
+          // Update baseline after successful assignment
+          this.initialDepartmentIds = [...uniqueDepartmentIds];
         },
         error: (error) => {
           // Only treat actual HTTP errors as errors
