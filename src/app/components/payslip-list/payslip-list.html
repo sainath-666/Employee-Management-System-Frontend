@@ -1,128 +1,108 @@
 <div class="container mx-auto px-4 py-8">
-    <!-- Header -->
-    <div class="mb-8">
-        <div class="flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-800">Payslips</h1>
-                <p class="text-gray-600 mt-2">Manage employee payslips</p>
-            </div>
-            <div>
-                <a [routerLink]="['/payslips/generate']" 
-                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                    <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Generate Payslip
-                </a>
-            </div>
-        </div>
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800">Payslips</h1>
+        <p class="text-gray-600 mt-2">
+          {{ isHR ? "Manage employee payslips" : "View your payslips" }}
+        </p>
+      </div>
     </div>
+  </div>
 
-    <!-- Error Message -->
-    <div *ngIf="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-        <p>{{ error }}</p>
-    </div>
+  <!-- Error Message -->
+  <div
+    *ngIf="error"
+    class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4"
+    role="alert"
+  >
+    <p>{{ error }}</p>
+  </div>
 
-    <!-- Loading Spinner -->
-    <div *ngIf="loading" class="flex justify-center items-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-    </div>
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="flex justify-center items-center py-8">
+    <div
+      class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+    ></div>
+  </div>
 
-    <!-- Payslips Table -->
-    <div class="bg-white shadow-md rounded-lg overflow-hidden" *ngIf="!loading">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee ID</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month/Year</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Salary</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Basic Salary</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Net Salary</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PDF</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                <tr *ngFor="let payslip of payslips" class="hover:bg-gray-50">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ payslip.employeeId }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ payslip.month }}/{{ payslip.year }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{{ payslip.Salary }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{{ payslip.BaseSalary }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{{ payslip.netSalary }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <div class="flex items-center space-x-4">
-                            <!-- Upload PDF -->
-                            <div *ngIf="!payslip.pdfPath">
-                                <input 
-                                    type="file" 
-                                    accept=".pdf" 
-                                    class="hidden" 
-                                    [id]="'pdf-upload-' + payslip.id"
-                                    (change)="onFileSelected($event, payslip.id!)"
-                                >
-                                <label 
-                                    [for]="'pdf-upload-' + payslip.id"
-                                    class="cursor-pointer text-blue-600 hover:text-blue-800"
-                                >
-                                    Upload PDF
-                                </label>
-                            </div>
-                            
-                            <!-- Download PDF -->
-                            <button 
-                                *ngIf="payslip.pdfPath"
-                                (click)="downloadPdf(payslip.id!)"
-                                class="text-blue-600 hover:text-blue-800"
-                            >
-                                Download PDF
-                            </button>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div class="flex items-center space-x-4">
-                            <a [routerLink]="['/payslips', payslip.id, 'edit']" 
-                               class="text-indigo-600 hover:text-indigo-900">
-                                Edit
-                            </a>
-                            <a [routerLink]="['/payslips/generate']" 
-                               class="text-green-600 hover:text-green-900">
-                                Generate Payslip
-                            </a>
-                            <button 
-                                (click)="deletePayslip(payslip.id!)"
-                                class="text-red-600 hover:text-red-900">
-                                Delete
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+  <!-- Payslips Table -->
+  <div class="bg-white shadow-md rounded-lg overflow-hidden" *ngIf="!loading">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Employee Name
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Month
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Basic Salary
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Net Salary
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let payslip of payslips" class="hover:bg-gray-50">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            {{ payslip.employeeName }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            {{ payslip.month }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            ₹{{ payslip.BaseSalary | number : "1.2-2" }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            ₹{{ payslip.netSalary | number : "1.2-2" }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">
+            <button
+              (click)="downloadPdf(payslip.employeeId)"
+              class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
+              [disabled]="loading"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              Download PDF
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-    <!-- No Payslips Message -->
-    <div *ngIf="!loading && payslips.length === 0" class="text-center py-8">
-        <p class="text-gray-500">No payslips found.</p>
-    </div>
-
-    <!-- Upload Controls -->
-    <div *ngIf="selectedFile" class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t p-4">
-        <div class="container mx-auto flex items-center justify-between">
-            <div class="text-sm text-gray-600">
-                Selected file: {{ selectedFile.name }}
-            </div>
-            <div class="flex items-center space-x-4">
-                <button 
-                    (click)="selectedFile = null"
-                    class="px-4 py-2 text-gray-600 hover:text-gray-800">
-                    Cancel
-                </button>
-                <button 
-                    (click)="uploadPdf()"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Upload
-                </button>
-            </div>
-        </div>
-    </div>
+  <!-- No Payslips Message -->
+  <div *ngIf="!loading && payslips.length === 0" class="text-center py-8">
+    <p class="text-gray-500">No payslips found.</p>
+  </div>
 </div>
