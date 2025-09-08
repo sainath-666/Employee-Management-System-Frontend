@@ -25,21 +25,31 @@
       <table>
         <thead>
           <tr>
-            <th>Employee Name</th>
-            <th>Department</th>
-            <th>Type</th>
-            <th>Duration</th>
-            <th>Reason</th>
-            <th>Status</th>
-            <th>Actions</th>
+            <th style="min-width: 150px">Employee Name</th>
+            @if (isHr) {
+            <th style="min-width: 150px">Department</th>
+            }
+            <th style="min-width: 120px">Type</th>
+            <th style="min-width: 150px">Duration</th>
+            <th style="min-width: 200px">Reason</th>
+            <th style="min-width: 100px">Status</th>
+            @if (isHr) {
+            <th style="min-width: 180px">Actions</th>
+            }
           </tr>
         </thead>
         <tbody>
           @for (request of leaveRequests; track request.id) {
           <tr>
-            <td>{{ request.employeeId }}</td>
-            <td>{{ request.createdBy }}</td>
-            <td class="leave-type">{{ getLeaveTypeLabel(request.leaveTypeID) }}</td>
+            <td>{{ employeeNames.get(request.employeeId) }}</td>
+            @if (isHr) {
+            <td>
+              {{ employeeDepartments.get(request.employeeId) || "Loading..." }}
+            </td>
+            }
+            <td class="leave-type">
+              {{ getLeaveTypeLabel(request.leaveTypeID) }}
+            </td>
             <td>
               <div class="duration">
                 <span class="duration-days">{{
@@ -69,6 +79,7 @@
                 {{ getStatusLabel(request.status) }}
               </span>
             </td>
+            @if (isHr) {
             <td>
               <div class="action-buttons">
                 @if (request.status === StatusEnum.Pending) {
@@ -101,7 +112,9 @@
                       : "cancel"
                   }}</mat-icon>
                   <div class="action-details">
-                    <span class="action-by">{{ request.updatedBy || 'N/A' }}</span>
+                    <span class="action-by">{{
+                      request.updatedBy || "N/A"
+                    }}</span>
                     <span class="action-date">{{
                       formatDate(request.updatedDateTime)
                     }}</span>
@@ -110,6 +123,7 @@
                 }
               </div>
             </td>
+            }
           </tr>
           }
         </tbody>

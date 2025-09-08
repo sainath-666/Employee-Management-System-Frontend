@@ -7,10 +7,29 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { LeaveService, LeaveRequest } from '../../services/leave.service';
+import { LeaveService } from '../../services/leave.service';
 import { AuthService } from '../../services/auth.service';
-import { LeaveTypeEnum } from '../../models/leaveTypeEnum';
+import { DepartmentEmployeeService } from '../../services/department-employee.service';
+import { EmployeeService } from '../../services/employee.service';
+import { DepartmentService } from '../../services/department.service';
 import { StatusEnum } from '../../models/statusEnum';
+import { LeaveTypeEnum } from '../../models/leaveTypeEnum';
+
+import { LeaveRequest as ServiceLeaveRequest } from '../../services/leave.service';
+
+interface LeaveRequest extends Omit<ServiceLeaveRequest, 'statusColor'> {
+  statusColor?: string;
+}
+
+type Department = {
+  id: number;
+  departmentName: string;
+  status: boolean;
+  createdBy?: number | null;
+  createdDateTime?: string;
+  updatedBy?: number | null;
+  updatedDateTime?: string | null;
+};
 
 @Component({
   selector: 'app-leave-management',
@@ -29,48 +48,141 @@ import { StatusEnum } from '../../models/statusEnum';
   styleUrls: ['./leave-management.css'],
 })
 export class LeaveManagement implements OnInit {
-  StatusEnum = StatusEnum; // Make StatusEnum available in template
-
-  displayedColumns: string[] = [
-    'employeeName',
-    'department',
-    'type',
-    'duration',
-    'reason',
-    'status',
-    'actions',
-  ];
-
-  leaveRequests: LeaveRequest[] = [];
-  isLoading = false;
-  error: string | null = null;
+  protected readonly StatusEnum = StatusEnum;
+  protected leaveRequests = new Array<LeaveRequest>();
+  protected isLoading = false;
+  protected error: string | null = null;
+  protected isHr = false;
+  protected displayedColumns = new Array<string>();
+  protected employeeNames = new Map<number, string>();
+  protected employeeDepartments = new Map<number, string>();
 
   constructor(
-    private leaveService: LeaveService,
-    private snackBar: MatSnackBar,
-    private authService: AuthService
+    private readonly leaveService: LeaveService,
+    private readonly snackBar: MatSnackBar,
+    private readonly authService: AuthService,
+    private readonly departmentEmployeeService: DepartmentEmployeeService,
+    private readonly employeeService: EmployeeService,
+    private readonly departmentService: DepartmentService
   ) {}
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
+    this.setDisplayColumns();
     this.loadLeaveRequests();
   }
 
-  loadLeaveRequests(): void {
+  private setDisplayColumns(): void {
+    const roleId = this.authService.getCurrentUserRole();
+    console.log('Role ID from auth service:', roleId, typeof roleId);
+    this.isHr = roleId === 9; // 9 is HR role
+    console.log('Current Role ID:', roleId, 'Is HR:', this.isHr);
+
+    if (!this.isHr) {
+      console.warn('User is not HR. Departments will not be loaded.');
+    }
+
+    this.displayedColumns = [
+      'employeeName',
+      ...(this.isHr ? ['department'] : []),
+      'leaveType',
+      'startDate',
+      'endDate',
+      'reason',
+      'status',
+      'actions',
+    ];
+  }
+
+  private loadEmployeeDepartment(employeeId: number): void {
+    console.log('Loading departments for employee:', employeeId);
+    this.departmentEmployeeService
+      .getDepartmentsForEmployee(employeeId)
+      .subscribe({
+        next: (departments: Department[]) => {
+          console.log('Received departments:', departments);
+          if (departments.length > 0) {
+            const departmentNames = departments
+              .filter((dept) => dept && dept.departmentName)
+              .map((dept) => dept.departmentName)
+              .join(', ');
+            this.employeeDepartments.set(employeeId, departmentNames);
+          } else {
+            this.employeeDepartments.set(employeeId, 'No Department');
+          }
+          console.log('Updated departments map:', this.employeeDepartments);
+        },
+        error: (error) => {
+          console.error('Error loading departments:', error);
+          this.employeeDepartments.set(employeeId, 'Error loading departments');
+          this.showNotification('Error loading employee departments', 'error');
+        },
+      });
+  }
+
+  protected loadLeaveRequests(): void {
     this.isLoading = true;
     this.error = null;
+
+    console.log('Loading leave requests...');
+
     this.leaveService.getAllLeaveRequests().subscribe({
       next: (requests) => {
-        // Log the raw response
-        console.log('Raw API response:', requests);
+        console.log('Received leave requests:', requests);
 
-        this.leaveRequests = requests.map((request) => {
-          const rawType = request.leaveTypeID;
-          console.log('Raw leave type:', rawType);
+        const currentEmployeeId = this.authService.getCurrentEmployeeId();
 
-          return {
+        this.leaveRequests = requests
+          .map((request) => ({
             ...request,
-            leaveTypeID: rawType
-          };
+            statusColor: this.getStatusColor(request.status),
+          }))
+          .filter(
+            (request) => this.isHr || request.employeeId === currentEmployeeId
+          );
+
+        // Load employee names and departments
+        const uniqueEmployeeIds = [
+          ...new Set(this.leaveRequests.map((r) => r.employeeId)),
+        ];
+
+        uniqueEmployeeIds.forEach((id) => {
+          // Load employee name
+          this.employeeService.getEmployeeById(id).subscribe({
+            next: (employee) => {
+              console.log('Received employee:', employee);
+              this.employeeNames.set(id, employee.name);
+            },
+            error: (error) => {
+              console.error('Error loading employee:', error);
+              this.employeeNames.set(id, `Employee ${id}`);
+            },
+          });
+
+          // Load department if user is HR
+          if (this.isHr) {
+            this.departmentEmployeeService
+              .getDepartmentsForEmployee(id)
+              .subscribe({
+                next: (departments: Department[]) => {
+                  if (departments.length > 0) {
+                    const departmentNames = departments
+                      .map((dept) => dept.departmentName)
+                      .join(', ');
+                    this.employeeDepartments.set(id, departmentNames);
+                  } else {
+                    this.employeeDepartments.set(id, 'No Department');
+                  }
+                },
+                error: (error) => {
+                  console.error(
+                    'Error loading departments for employee:',
+                    id,
+                    error
+                  );
+                  this.employeeDepartments.set(id, 'Error loading department');
+                },
+              });
+          }
         });
 
         console.log('Processed requests:', this.leaveRequests);
@@ -79,142 +191,150 @@ export class LeaveManagement implements OnInit {
       error: (error) => {
         this.error = 'Failed to load leave requests. Please try again later.';
         this.isLoading = false;
+        console.error('Error loading leave requests:', error);
         this.showNotification(this.error, 'error');
       },
     });
   }
 
-  approveLeave(id: number): void {
+  protected canApproveReject(request: LeaveRequest): boolean {
     const currentUserId = this.authService.getCurrentEmployeeId();
-    if (!currentUserId) {
-      this.showNotification('Missing current user id. Please re-login.', 'error');
-      return;
-    }
-    const request = this.leaveRequests.find((r) => r.id === id);
-    if (!request) {
-      this.showNotification('Leave request not found', 'error');
-      return;
-    }
-    // Optimistic UI update
-    const previousStatus = request.status;
-    request.status = StatusEnum.Accepted;
-
-    this.leaveService.updateLeaveStatus(request, 'Approved', currentUserId).subscribe({
-      next: (res) => {
-        console.log('Approve response:', res);
-        this.showNotification('Leave request approved successfully', 'success');
-      },
-      error: (error) => {
-        console.error('Approve error:', error);
-        request.status = previousStatus; // revert
-        const message = (error && (error.error || error.message)) || 'Failed to approve leave request. Please try again.';
-        this.showNotification(message, 'error');
-      },
-    });
+    return this.isHr && request.employeeId !== currentUserId;
   }
 
-  rejectLeave(id: number): void {
-    const currentUserId = this.authService.getCurrentEmployeeId();
-    if (!currentUserId) {
-      this.showNotification('Missing current user id. Please re-login.', 'error');
-      return;
-    }
-    const request = this.leaveRequests.find((r) => r.id === id);
-    if (!request) {
-      this.showNotification('Leave request not found', 'error');
-      return;
-    }
-    // Optimistic UI update
-    const previousStatus = request.status;
-    request.status = StatusEnum.Rejected;
-
-    this.leaveService.updateLeaveStatus(request, 'Rejected', currentUserId).subscribe({
-      next: (res) => {
-        console.log('Reject response:', res);
-        this.showNotification('Leave request rejected successfully', 'success');
-      },
-      error: (error) => {
-        console.error('Reject error:', error);
-        request.status = previousStatus; // revert
-        const message = (error && (error.error || error.message)) || 'Failed to reject leave request. Please try again.';
-        this.showNotification(message, 'error');
-      },
-    });
-  }
-
-  getChipColor(status: string): string {
+  private getStatusColor(status: StatusEnum): string {
     switch (status) {
-      case 'Approved':
-        return 'bg-green-100 text-green-800';
-      case 'Rejected':
-        return 'bg-red-100 text-red-800';
+      case StatusEnum.Accepted:
+        return '#4CAF50'; // Green
+      case StatusEnum.Rejected:
+        return '#F44336'; // Red
+      case StatusEnum.Pending:
+        return '#FFC107'; // Yellow
       default:
-        return 'bg-yellow-100 text-yellow-800';
+        return '#9E9E9E'; // Grey
     }
   }
 
-  getDuration(start?: string, end?: string): string {
-    if (!start || !end) return 'N/A';
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const days =
-      Math.ceil(
-        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-      ) + 1;
-    return `${days} day${days > 1 ? 's' : ''}`;
+  protected handleLeaveAction(id: number, action: 'accept' | 'reject'): void {
+    const request = this.leaveRequests.find((r) => r.id === id);
+    if (!request) {
+      this.showNotification('Leave request not found', 'error');
+      return;
+    }
+
+    const currentUserId = this.authService.getCurrentEmployeeId();
+    if (!this.isHr || request.employeeId === currentUserId) {
+      this.showNotification(
+        'You do not have permission to perform this action',
+        'error'
+      );
+      return;
+    }
+
+    if (!currentUserId) {
+      this.showNotification(
+        'Could not identify current user. Please try again.',
+        'error'
+      );
+      return;
+    }
+
+    this.leaveService
+      .updateLeaveStatus(
+        request,
+        action === 'accept' ? 'Approved' : 'Rejected',
+        currentUserId
+      )
+      .subscribe({
+        next: (res) => {
+          this.showNotification(
+            `Leave request ${action}ed successfully`,
+            'success'
+          );
+          this.loadLeaveRequests();
+        },
+        error: (error) => {
+          console.error('Error updating leave status:', error);
+          this.showNotification(`Failed to ${action} leave request`, 'error');
+        },
+      });
   }
 
-  formatDate(date?: string): string {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toLocaleDateString('en-US', {
+  protected deleteLeaveRequest(id: number): void {
+    const request = this.leaveRequests.find((r) => r.id === id);
+    if (!request) {
+      this.showNotification('Leave request not found', 'error');
+      return;
+    }
+
+    const currentUserId = this.authService.getCurrentEmployeeId();
+    if (request.employeeId !== currentUserId) {
+      this.showNotification(
+        'You can only delete your own leave requests',
+        'error'
+      );
+      return;
+    }
+
+    this.leaveService.deleteLeaveRequest(id).subscribe({
+      next: (res) => {
+        this.showNotification('Leave request deleted successfully', 'success');
+        this.loadLeaveRequests();
+      },
+      error: (error) => {
+        console.error('Error deleting leave request:', error);
+        this.showNotification('Failed to delete leave request', 'error');
+      },
+    });
+  }
+
+  private showNotification(message: string, type: 'success' | 'error'): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass: type === 'error' ? 'error-snackbar' : 'success-snackbar',
+    });
+  }
+
+  protected getLeaveTypeLabel(leaveTypeId?: LeaveTypeEnum): string {
+    if (!leaveTypeId) return 'Unknown';
+    return LeaveTypeEnum[leaveTypeId] || 'Unknown';
+  }
+
+  protected getDuration(startDate?: string, endDate?: string): string {
+    if (!startDate || !endDate) return 'N/A';
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
+  }
+
+  protected getStatusLabel(status: StatusEnum): string {
+    return StatusEnum[status] || 'Unknown';
+  }
+
+  protected approveLeave(id: number): void {
+    this.handleLeaveAction(id, 'accept');
+  }
+
+  protected rejectLeave(id: number): void {
+    this.handleLeaveAction(id, 'reject');
+  }
+
+  protected formatDate(dateString?: string): string {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
-  }
-
-  getLeaveTypeLabel(type: LeaveTypeEnum | undefined): string {
-    if (type === undefined || type === null) {
-      return 'Unknown';
-    }
-
-    switch (type) {
-      case LeaveTypeEnum.Sick:
-        return 'Sick Leave';
-      case LeaveTypeEnum.Casual:
-        return 'Casual Leave';
-      case LeaveTypeEnum.Earned:
-        return 'Earned Leave';
-      case LeaveTypeEnum.Maternity:
-        return 'Maternity Leave';
-      case LeaveTypeEnum.Paternity:
-        return 'Paternity Leave';
-      case LeaveTypeEnum.Other:
-        return 'Other';
-      default:
-        return 'Unknown';
-    }
-  }
-
-  private showNotification(message: string, type: 'success' | 'error'): void {
-    this.snackBar.open(message, 'Close', {
-      duration: 5000,
-      panelClass: type === 'error' ? ['error-snackbar'] : ['success-snackbar'],
-    });
-  }
-
-  getStatusLabel(status: StatusEnum): string {
-    switch (status) {
-      case StatusEnum.Pending:
-        return 'Pending';
-      case StatusEnum.Accepted:
-        return 'Accepted';
-      case StatusEnum.Rejected:
-        return 'Rejected';
-      default:
-        return 'Unknown';
-    }
   }
 }
