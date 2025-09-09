@@ -19,7 +19,7 @@ import { AuthService } from '../../services/auth.service';
 export class Login {
   loginForm: FormGroup;
   errorMessage: string = '';
-
+  showPassword: boolean = false; //
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -63,7 +63,7 @@ export class Login {
         }
       },
       error: (error: any) => {
-        this.errorMessage = error.message || 'An error occurred during login';
+        this.errorMessage = "Invalid email or password.";
         console.error('Login error:', error);
       },
     });
