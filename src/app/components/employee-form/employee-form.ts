@@ -518,14 +518,28 @@ export class EmployeeForm implements OnInit, OnChanges, OnDestroy {
     const formData = this.createFormData(); // Use FormData instead of raw form value
     this.employeeService.createEmployee(formData).subscribe({
       next: (response) => {
+        console.log('Create employee response:', response); // Debug log
         if (response && response.id) {
+          // Get the form values
+          const formValues = this.employeeForm.getRawValue();
+          
           // After employee is created, assign departments
           this.assignDepartmentsToEmployee(response.id);
           this.successMessage = 'Employee created successfully!';
-          // Show success message then navigate
+          // Show success message then navigate to payslip form
           setTimeout(() => {
             this.successMessage = '';
-            this.router.navigate(['/dashboard']);
+            // Navigate to payslip form with employee details
+            console.log('Navigating to payslip form with params:', {
+              employeeId: response.id,
+              employeeName: formValues.name
+            }); // Debug log
+            this.router.navigate(['/payslip-form'], {
+              queryParams: {
+                employeeId: response.id,
+                employeeName: formValues.name
+              }
+            });
           }, 1500);
         } else {
           this.errorMessage = 'Invalid response from server';

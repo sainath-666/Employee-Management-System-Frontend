@@ -16,6 +16,8 @@ export interface Payslip {
   deductions: number;
   createdBy: number;
   pdfPath?: string;
+  month?: string;
+  status?: boolean;
 }
 
 @Injectable({
@@ -102,7 +104,6 @@ export class PayslipService {
     deductions: number;
     createdBy: number;
   }): Observable<any> {
-    // Ensure we only send the required fields
     const payload = {
       employeeId: payslipData.employeeId,
       baseSalary: payslipData.baseSalary,
@@ -111,41 +112,56 @@ export class PayslipService {
       createdBy: payslipData.createdBy
     };
 
-    console.log('Sending exact payload:', payload);
+    console.log('Creating payslip with payload:', payload);
 
     return this.http
-      .post(`${this.apiUrl}/create-and-generate-pdf`, payload, {
+      .post(`${this.apiUrl}/payslip-data`, payload, {
         headers: new HttpHeaders({
           'Content-Type': 'application/json'
         })
       })
       .pipe(
         map(response => {
-          console.log('Server response:', response);
+          console.log('Create payslip response:', response);
           return response;
         }),
         catchError(error => {
-          console.error('API Error:', error);
+          console.error('Create payslip error:', error);
           return throwError(() => error);
         })
       );
   }
 
-  // Update payslip
-  updatePayslip(id: number, payslip: Payslip): Observable<Payslip> {
-    // Create a deep copy of the payslip data to ensure clean data
-    const cleanPayslip = {
-      employeeId: Number(payslip.employeeId),
-      baseSalary: Number(payslip.baseSalary || 0),
-      allowances: Number(payslip.allowances || 0),
-      deductions: Number(payslip.deductions || 0),
-      createdBy: Number(payslip.createdBy)
+  // Update payslip using the main API endpoint
+  updatePayslip(id: number, payslip: {
+    employeeId: number;
+    baseSalary: number;
+    allowances: number;
+    deductions: number;
+    createdBy: number;
+    month?: string;
+    status?: boolean;
+  }): Observable<any> {
+    console.log('Update payslip data:', { id, payslip });
+    const baseSalary = Number(payslip.baseSalary) || 0;
+    const allowances = Number(payslip.allowances) || 0;
+    const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+    
+    const payload = {
+      employeeId: payslip.employeeId,
+      salary: baseSalary + allowances, // Calculate salary as sum of baseSalary and allowances
+      baseSalary: baseSalary,
+      allowances: allowances,
+      deductions: payslip.deductions,
+      createdBy: 22,
+      month: payslip.month || currentMonth,
+      status: true
     };
 
-    console.log('Updating payslip with data:', cleanPayslip);
+    console.log('Updating payslip with data:', payload);
 
     return this.http
-      .put<Payslip>(`${this.apiUrl}/${id}`, cleanPayslip, this.httpOptions)
+      .put(`${this.apiUrl}/${id}`, payload, this.httpOptions)
       .pipe(
         map((response) => {
           console.log('Update response:', response);
@@ -159,7 +175,7 @@ export class PayslipService {
           console.error('Status:', error.status);
           console.error('Status Text:', error.statusText);
           console.error('Error body:', error.error);
-          console.error('Payload sent:', cleanPayslip);
+          console.error('Payload sent:', payload);
 
           let errorMessage = '';
           if (error.status === 500) {
@@ -207,6 +223,25 @@ export class PayslipService {
     return this.http
       .post(`${this.apiUrl}/${id}/generate-pdf`, {}, this.httpOptions)
       .pipe(catchError(this.handleError));
+  }
+
+  // Generate PDFs for selected payslips
+  generateSelectedPayslipsPdf(payload: { employeeIds: number[], createdBy: number }): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    });
+
+    console.log('Sending payload:', payload); // Debug log
+    
+    return this.http
+      .put(`${this.apiUrl}/update-and-generate-pdf-bulk`, payload, { headers, withCredentials: true })
+      .pipe(
+        catchError(error => {
+          console.error('Error in generateSelectedPayslipsPdf:', error);
+          return throwError(() => error);
+        })
+      );
   }
 
   // Download PDF for a payslip
