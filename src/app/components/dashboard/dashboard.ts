@@ -9,6 +9,7 @@ import { LeaveService } from '../../services/leave.service';
 import { DepartmentEmployeeService } from '../../services/department-employee.service';
 import { PayslipService } from '../../services/payslip.service';
 import { StatusEnum } from '../../models/statusEnum';
+import { LeaveTypeEnum } from '../../models/leaveTypeEnum';
 import { Employee } from '../../interfaces/employee';
 
 enum UserRole {
@@ -615,17 +616,52 @@ export class Dashboard implements OnInit {
             this.recentActivities = [];
           },
         });
-    } else {
-      this.leaveService.getAllLeaveRequests().subscribe({
-        next: (leaves) => {
-          this.recentActivities = leaves.slice(0, 4).map((leave) => ({
-            action: 'Leave Request',
-            details: `Leave Request - ${leave.status}`,
-            time: this.getTimeAgo(new Date(leave.startDate || new Date())),
-          }));
+    } else if (this.currentUser.role === UserRole.HR) {
+      // For HR, show leave requests
+      this.employeeService.getAllEmployees().subscribe({
+        next: (employees) => {
+          const employeeMap = new Map(
+            employees.map((emp) => [emp.id, `${emp.firstName} ${emp.lastName}`])
+          );
+
+          // Get leave requests
+          this.leaveService.getAllLeaveRequests().subscribe({
+            next: (leaves) => {
+              // Sort by most recent first
+              this.recentActivities = leaves
+                .sort(
+                  (a, b) =>
+                    new Date(b.createdDateTime).getTime() -
+                    new Date(a.createdDateTime).getTime()
+                )
+                .slice(0, 5) // Take only the 5 most recent
+                .map((leave) => {
+                  const employeeName =
+                    employeeMap.get(leave.employeeId) ||
+                    `Employee ID: ${leave.employeeId}`;
+                  const leaveTypeText =
+                    LeaveTypeEnum[leave.leaveTypeID || 0] || 'Leave';
+                  const statusText = StatusEnum[leave.status] || leave.status;
+
+                  return {
+                    action: `${leaveTypeText} Request`,
+                    details: `${employeeName} | ${this.formatDate(
+                      leave.startDate
+                    )} to ${this.formatDate(
+                      leave.endDate
+                    )} | Status: ${statusText}`,
+                    time: this.getTimeAgo(new Date(leave.createdDateTime)),
+                  };
+                });
+            },
+            error: (error) => {
+              console.error('Error fetching leave requests:', error);
+              this.recentActivities = [];
+            },
+          });
         },
         error: (error) => {
-          console.error('Error fetching all leave requests:', error);
+          console.error('Error fetching employees:', error);
           this.recentActivities = [];
         },
       });
