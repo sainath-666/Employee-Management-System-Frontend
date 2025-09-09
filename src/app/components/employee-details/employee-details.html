@@ -13,18 +13,17 @@
     </div>
 
     <!-- Filters -->
-   
 
     <div>
       <select
-        [(ngModel)]="roleFilter"
+        [(ngModel)]="departmentFilter"
         (change)="onFilterChange()"
         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
-        <option value="all">All Roles</option>
-        <option value="Developer">Developer</option>
-        <option value="Manager">Manager</option>
-        <option value="HR">HR</option>
+        <option value="all">All Departments</option>
+        <option *ngFor="let dept of departments" [value]="dept.departmentName">
+          {{ dept.departmentName }}
+        </option>
       </select>
     </div>
 
@@ -75,9 +74,9 @@
           <th
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           >
-            Role
+            Departments
           </th>
-          
+
           <th
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           >
@@ -100,7 +99,6 @@
               [src]="employee.profileUrl"
               [alt]="employee.name"
               class="h-10 w-10 rounded-full object-cover"
-
             />
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -118,9 +116,16 @@
             {{ employee.mobileNumber }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ employee.role }}
+            <ng-container *ngIf="employee.departments?.length; else noDept">
+              <span *ngFor="let dept of employee.departments; let last = last">
+                {{ dept }}<span *ngIf="!last">, </span>
+              </span>
+            </ng-container>
+            <ng-template #noDept>
+              <span class="text-gray-400 italic">No Departments</span>
+            </ng-template>
           </td>
-         
+
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
             {{ employee.gender }}
           </td>

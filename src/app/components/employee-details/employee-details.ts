@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { EmployeeService } from '../../services/employee.service';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { DepartmentService } from '../../services/department.service';
+import { DepartmentEmployeeService } from '../../services/department-employee.service';
 
 interface Employee {
   id: number;
@@ -15,6 +17,7 @@ interface Employee {
   role: string;
   status: string;
   gender: string;
+  departments?: string[];
 }
 
 @Component({
@@ -34,11 +37,16 @@ export class EmployeeDetails implements OnInit {
   protected statusFilter: string = 'all';
   protected roleFilter: string = 'all';
   protected genderFilter: string = 'all';
+  protected departments: { id: number; departmentName: string }[] = [];
+  protected departmentFilter: string = 'all';
+
 
   constructor(
     private employeeService: EmployeeService,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private deptService:DepartmentService,
+    private deptEmpService:DepartmentEmployeeService
   ) {}
 
   isHR(): boolean {
@@ -69,30 +77,57 @@ export class EmployeeDetails implements OnInit {
   
 
   loadEmployees(): void {
-    this.employeeService.getAllEmployees().subscribe({
-      next: (data) => {
-        this.employees = data.map((emp) => ({
-          id: emp.id,
-          employeeCode: emp.employeeCode,
-          name: emp.name,
-          email: emp.email,
-          mobileNumber: emp.mobileNumber,
-          // Build absolute image URL or fallback to default avatar
-          profileUrl: emp.profilePhotoPath
-            ? `${this.employeeService.imageApiUrl}${emp.profilePhotoPath}`
-            : 'assets/images/profi.webp',
-          role: emp.role ?? emp.roleName ?? '',
-          status: emp.status,
-          gender: emp.gender,
-        }));
-        console.log(this.employees);
-        this.applyFilters(); // Apply initial filters
-      },
-      error: (error) => {
-        console.error('Error fetching employees:', error);
-      },
-    });
-  }
+  // Step 1: load all departments first
+  this.deptService.getAllDepartments().subscribe({
+    next: (allDepts) => {
+      this.departments = allDepts;
+      const deptMap = new Map(allDepts.map(d => [d.id, d.departmentName]));
+
+      // Step 2: load employees
+      this.employeeService.getAllEmployees().subscribe({
+        next: (data) => {
+          this.employees = data.map((emp) => ({
+            id: emp.id,
+            employeeCode: emp.employeeCode,
+            name: emp.name,
+            email: emp.email,
+            mobileNumber: emp.mobileNumber,
+            profileUrl: emp.profilePhotoPath
+              ? `${this.employeeService.imageApiUrl}${emp.profilePhotoPath}`
+              : 'assets/images/profi.webp',
+            role: emp.role ?? emp.roleName ?? '',
+            status: emp.status,
+            gender: emp.gender,
+            departments: [] // will fill next
+          }));
+
+          // Step 3: fetch department IDs for each employee
+          this.employees.forEach((emp) => {
+            this.deptEmpService.getDepartmentsForEmployee(emp.id).subscribe({
+              next: (deptAssignments) => {
+                // deptAssignments contains IDs → map to names
+                emp.departments = deptAssignments
+                  .map(d => deptMap.get(d.id) || "Unknown");
+              },
+              error: (err) => {
+                console.error(`Error fetching departments for employee ${emp.id}`, err);
+              }
+            });
+          });
+
+          this.applyFilters();
+        },
+        error: (error) => {
+          console.error('Error fetching employees:', error);
+        },
+      });
+    },
+    error: (err) => {
+      console.error("Error fetching departments:", err);
+    }
+  });
+}
+
 
   // onImgError(event: Event): void {
   //   const img = event.target as HTMLImageElement;
@@ -121,9 +156,11 @@ export class EmployeeDetails implements OnInit {
     }
 
     // Apply role filter
-    if (this.roleFilter !== 'all') {
-      filtered = filtered.filter((emp) => emp.role === this.roleFilter);
-    }
+    if (this.departmentFilter !== 'all') {
+    filtered = filtered.filter(
+      (emp) => emp.departments?.includes(this.departmentFilter)
+    );
+  }
 
     // Apply gender filter
     if (this.genderFilter !== 'all') {
@@ -161,6 +198,7 @@ export class EmployeeDetails implements OnInit {
 
   protected onEdit(employee: Employee): void {
     // TODO: Implement edit functionality
+    this.router.navigate(['/employee-form', employee.id]);
     console.log('Edit employee:', employee);
   }
 
