@@ -9,6 +9,10 @@
         <div
           class="flex-shrink-0 flex items-center group hover:scale-105 transition-transform duration-200 cursor-pointer"
         >
+        <a
+            (click)="navigate('/dashboard')"
+            class="group relative px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200 cursor-pointer"
+          >
           <svg
             class="h-9 w-9 text-blue-600 transform group-hover:rotate-12 transition-transform duration-300"
             fill="currentColor"
@@ -21,6 +25,7 @@
           <span
             class="ml-2 text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent"
             >CompanyName</span
+          ></a
           >
         </div>
       </div>

@@ -2,7 +2,7 @@
   <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
     <div class="px-6 py-8">
       <h2 class="text-2xl font-bold text-center text-gray-800 mb-4">Leave Request Form</h2>
-      
+
       <!-- Success/Error Messages -->
       @if (successMessage) {
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
@@ -14,7 +14,7 @@
           <span class="block sm:inline">{{ errorMessage }}</span>
         </div>
       }
-      
+
       <form [formGroup]="leaveForm" (ngSubmit)="onSubmit()" class="space-y-6">
         <!-- Leave Type -->
         <div class="space-y-2">
@@ -25,12 +25,12 @@
             <select
               id="leaveType"
               formControlName="leaveType"
-              class="appearance-none mt-1 block w-full px-3 py-2.5 bg-white 
+              class="appearance-none mt-1 block w-full px-3 py-2.5 bg-white
                      border rounded-lg shadow-sm pl-4 pr-10
                      focus:outline-none focus:ring-2 focus:border-green-400 focus:ring-green-400/50
                      hover:border-green-400 transition-all duration-300 ease-in-out
                      text-base sm:text-sm cursor-pointer"
-              [ngClass]="{'border-red-500 hover:border-red-500 focus:border-red-500 focus:ring-red-400/50': 
+              [ngClass]="{'border-red-500 hover:border-red-500 focus:border-red-500 focus:ring-red-400/50':
                          leaveForm.get('leaveType')?.invalid && leaveForm.get('leaveType')?.touched,
                          'border-gray-300': !leaveForm.get('leaveType')?.invalid || !leaveForm.get('leaveType')?.touched}"
             >
@@ -46,7 +46,7 @@
               </svg>
             </div>
           </div>
-          <div *ngIf="leaveForm.get('leaveType')?.invalid && leaveForm.get('leaveType')?.touched" 
+          <div *ngIf="leaveForm.get('leaveType')?.invalid && leaveForm.get('leaveType')?.touched"
                class="text-red-500 text-xs mt-1 animate-fade-in">
             Please select a leave type
           </div>
@@ -65,7 +65,7 @@
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-all duration-300"
             [ngClass]="{'border-red-500': leaveForm.get('startDate')?.invalid && leaveForm.get('startDate')?.touched}"
           >
-          <div *ngIf="leaveForm.get('startDate')?.invalid && leaveForm.get('startDate')?.touched" 
+          <div *ngIf="leaveForm.get('startDate')?.invalid && leaveForm.get('startDate')?.touched"
                class="text-red-500 text-xs mt-1 animate-fade-in">
             Start date is required
           </div>
@@ -84,11 +84,11 @@
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-all duration-300"
             [ngClass]="{'border-red-500': leaveForm.get('endDate')?.invalid && leaveForm.get('endDate')?.touched}"
           >
-          <div *ngIf="leaveForm.get('endDate')?.invalid && leaveForm.get('endDate')?.touched" 
+          <div *ngIf="leaveForm.get('endDate')?.invalid && leaveForm.get('endDate')?.touched"
                class="text-red-500 text-xs mt-1 animate-fade-in">
             <span *ngIf="leaveForm.get('endDate')?.errors?.['required']">End date is required</span>
           </div>
-          <div *ngIf="leaveForm.errors?.['dateRange']" 
+          <div *ngIf="leaveForm.errors?.['dateRange']"
                class="text-red-500 text-xs mt-1 animate-fade-in">
             End date must be after start date
           </div>
@@ -104,10 +104,10 @@
             formControlName="reason"
             rows="4"
             placeholder="Please provide a detailed reason for your leave request..."
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-all duration-300 resize-none"
+            class=" text-gray-600 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-all duration-300 resize-none"
             [ngClass]="{'border-red-500': leaveForm.get('reason')?.invalid && leaveForm.get('reason')?.touched}"
           ></textarea>
-          <div *ngIf="leaveForm.get('reason')?.invalid && leaveForm.get('reason')?.touched" 
+          <div *ngIf="leaveForm.get('reason')?.invalid && leaveForm.get('reason')?.touched"
                class="text-red-500 text-xs mt-1 animate-fade-in">
             <span *ngIf="leaveForm.get('reason')?.errors?.['required']">Reason is required</span>
             <span *ngIf="leaveForm.get('reason')?.errors?.['minlength']">Reason must be at least 10 characters</span>
@@ -129,7 +129,7 @@
           <button
             type="button"
             (click)="onCancel()"
-            class="w-full sm:w-1/2 flex justify-center py-3 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 
+            class="w-full sm:w-1/2 flex justify-center py-3 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700
                    bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500
                    transition-all duration-300"
           >
@@ -138,7 +138,7 @@
           <button
             type="submit"
             [disabled]="leaveForm.invalid"
-            class="w-full sm:w-1/2 flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+            class="w-full sm:w-1/2 flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white
                    bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600
                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
                    transition-all duration-300 transform hover:scale-105
