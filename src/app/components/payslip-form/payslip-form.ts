@@ -37,6 +37,7 @@ export class PayslipForm implements OnInit {
   private employee: Employee | null = null;
   #showPreview = false;
   #employee: Employee | null = null;
+  isPdfGenerated = false;
 
   private readonly fb = inject(FormBuilder);
   private readonly payslipService = inject(PayslipService);
@@ -308,6 +309,7 @@ export class PayslipForm implements OnInit {
     this.payslipService.createAndGeneratePdf(payslipData).subscribe({
       next: (response) => {
         console.log('Server response:', response);
+        this.isPdfGenerated = true;
         alert('Payslip generated successfully!');
         void this.router.navigate(['/payslips']);
       },
