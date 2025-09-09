@@ -379,53 +379,71 @@ export class Dashboard implements OnInit {
   }
 
   private loadDepartmentsData(employees: any[]) {
+    // First get all departments
     this.departmentService.getAllDepartments().subscribe({
       next: (departments) => {
         this.statistics.totalDepartments = departments.length;
-        this.departments = [];
 
+        // Initialize department map with all departments
         const departmentMap = new Map(
           departments.map((dept) => [
             dept.id,
-            { name: dept.departmentName || 'Unknown', count: 0 },
+            {
+              id: dept.id,
+              name: dept.departmentName || 'Unknown',
+              count: 0,
+              employees: new Set<number>(), // Keep track of unique employees
+            },
           ])
         );
 
-        let processedEmployees = 0;
-        const totalEmployees = employees.length;
-
-        employees.forEach((employee) => {
-          if (employee.id) {
-            this.departmentEmployeeService
-              .getDepartmentsForEmployee(employee.id)
-              .subscribe({
-                next: (employeeDepartments) => {
-                  employeeDepartments.forEach((dept) => {
-                    const departmentData = departmentMap.get(dept.id);
-                    if (departmentData) {
-                      departmentData.count++;
-                    }
+        // Create a promise for each employee's department data
+        const departmentPromises = employees
+          .filter((employee) => employee.id) // Filter out any invalid employees
+          .map(
+            (employee) =>
+              new Promise<void>((resolve) => {
+                this.departmentEmployeeService
+                  .getDepartmentsForEmployee(employee.id)
+                  .subscribe({
+                    next: (empDepartments) => {
+                      // For each department this employee belongs to
+                      empDepartments.forEach((dept) => {
+                        const departmentData = departmentMap.get(dept.id);
+                        if (departmentData) {
+                          // Only count each employee once per department
+                          if (!departmentData.employees.has(employee.id)) {
+                            departmentData.employees.add(employee.id);
+                            departmentData.count++;
+                          }
+                        }
+                      });
+                      resolve();
+                    },
+                    error: (error) => {
+                      console.error(
+                        `Error fetching departments for employee ${employee.id}:`,
+                        error
+                      );
+                      resolve(); // Resolve even on error to continue processing
+                    },
                   });
+              })
+          );
 
-                  processedEmployees++;
-                  if (processedEmployees === totalEmployees) {
-                    this.departments = Array.from(departmentMap.values());
-                    setTimeout(() => this.initializeDepartmentChart(), 0);
-                  }
-                },
-                error: (error) => {
-                  console.error(
-                    `Error fetching departments for employee ${employee.id}:`,
-                    error
-                  );
-                  processedEmployees++;
-                  if (processedEmployees === totalEmployees) {
-                    this.departments = Array.from(departmentMap.values());
-                    setTimeout(() => this.initializeDepartmentChart(), 0);
-                  }
-                },
-              });
-          }
+        // Wait for all employee department data to be processed
+        Promise.all(departmentPromises).then(() => {
+          // Convert the map to array and sort by count (highest first)
+          this.departments = Array.from(departmentMap.values())
+            .map((dept) => ({
+              name: dept.name,
+              count: dept.count,
+            }))
+            .sort((a, b) => b.count - a.count)
+            .filter((dept) => dept.name !== 'Unknown'); // Remove any unknown departments
+
+          // Initialize the chart with the updated data
+          setTimeout(() => this.initializeDepartmentChart(), 0);
         });
       },
       error: (error) => {
@@ -681,9 +699,7 @@ export class Dashboard implements OnInit {
             .slice(0, 3)
             .map((emp) => ({
               action: 'New Employee Added',
-              details: `${emp.name}  | ${
-                emp.email || 'No email'
-              }`,
+              details: `${emp.name}  | ${emp.email || 'No email'}`,
               time: new Date(emp.createdDateTime || new Date()),
             }));
 
