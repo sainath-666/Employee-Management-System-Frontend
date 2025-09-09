@@ -8,7 +8,6 @@ import {
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { PayslipService } from '../../services/payslip.service';
-import { AuthService } from '../../services/auth.service';
 
 interface Employee {
   id: string;
@@ -35,50 +34,26 @@ export class PayslipForm implements OnInit {
   private readonly payslipService = inject(PayslipService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  private readonly authService = inject(AuthService);
-
-  get isHR(): boolean {
-    return this.authService.isHR();
-  }
-
-  get isAdmin(): boolean {
-    return this.authService.isAdmin();
-  }
-
-  get buttonText(): string {
-    if (this.isHR) return 'Update Payslip';
-    if (this.isAdmin) return 'Create Payslip';
-    return 'Generate PDF';
-  }
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
       console.log('Received query params:', params);
-      const employeeId = params['employeeId'];
-      const employeeName = params['employeeName'];
-      
-      console.log('Employee ID:', employeeId, 'Employee Name:', employeeName);
-      
-      if (employeeId && employeeName) {
-        // Store employee data
+      if (params['employeeId'] && params['employeeName']) {
         this.#employee = {
-          id: employeeId,
-          name: employeeName
+          id: params['employeeId'],
+          name: params['employeeName']
         };
-        console.log('Set employee data:', this.#employee);
 
-        // Initialize form with employee data
-        this.initializeForm();
-        this.updateFormWithEmployeeData();
-
-        // If there's a payslip ID, load that data
         if (params['payslipId']) {
           this.isEditMode = true;
           this.payslipId = parseInt(params['payslipId']);
+          
           this.loadPayslipData(this.payslipId);
+        } else {
+          this.initializeForm();
+          this.updateFormWithEmployeeData();
         }
       } else {
-        console.error('Missing employee data in params');
         this.initializeForm();
       }
     });
@@ -89,50 +64,34 @@ export class PayslipForm implements OnInit {
     this.payslipService.getPayslipById(payslipId).subscribe({
       next: (payslip: any) => {
         console.log('Loading existing payslip data:', payslip);
-        // Make sure to set the form data first
         this.initializeForm(payslip);
-        
-        // Ensure employee data is set before updating form
-        if (this.#employee) {
-          console.log('Employee data available:', this.#employee);
-          this.updateFormWithEmployeeData();
-        } else {
-          console.error('Employee data missing');
-        }
-        
+        this.updateFormWithEmployeeData();
         this.loading = false;
       },
       error: (error: any) => {
         console.error('Error loading payslip:', error);
         this.error = 'Error loading payslip data';
         this.initializeForm();
-        // Still try to update with employee data if available
-        if (this.#employee) {
-          this.updateFormWithEmployeeData();
-        }
+        this.updateFormWithEmployeeData();
         this.loading = false;
       }
     });
   }
 
   private initializeForm(data?: any): void {
-    const baseSalary = data?.baseSalary ?? 0;
-    const allowances = data?.allowances ?? 0;
-    const deductions = data?.deductions ?? 0;
-
     this.payslipForm = this.fb.group({
       name: [{ value: '', disabled: true }],
       empId: [{ value: '', disabled: true }],
       baseSalary: [
-        baseSalary,
+        data?.baseSalary || 0,
         [Validators.required, Validators.min(0.01), Validators.pattern(/^\d+$/)]
       ],
       allowances: [
-        allowances,
+        data?.allowances || 0,
         [Validators.required, Validators.min(0), Validators.pattern(/^\d+$/)]
       ],
       deductions: [
-        deductions,
+        data?.deductions || 0,
         [Validators.required, Validators.min(0), Validators.pattern(/^\d+$/)]
       ],
     });
@@ -149,6 +108,7 @@ export class PayslipForm implements OnInit {
 
   public calculateNetSalary(): number {
     if (!this.payslipForm) return 0;
+
     const values = this.payslipForm.getRawValue();
     return (values.baseSalary || 0) + (values.allowances || 0) - (values.deductions || 0);
   }
@@ -183,18 +143,15 @@ export class PayslipForm implements OnInit {
     }
 
     const formValues = this.payslipForm.getRawValue();
-    const baseSalary = Math.round(Math.abs(Number(formValues.baseSalary))) || 0;
-    const allowances = Math.round(Math.abs(Number(formValues.allowances))) || 0;
-    const deductions = Math.round(Math.abs(Number(formValues.deductions))) || 0;
-    
     const payslipData = {
       employeeId: parseInt(formValues.empId),
-      baseSalary: baseSalary,
-      allowances: allowances,
-      deductions: deductions,
-      createdBy: 22 // Fixed HR ID
+      baseSalary: Math.round(Math.abs(Number(formValues.baseSalary))),
+      allowances: Math.round(Math.abs(Number(formValues.allowances))),
+      deductions: Math.round(Math.abs(Number(formValues.deductions))),
+      createdBy: 22 // HR ID
     };
 
+    // Validate the data
     if (payslipData.baseSalary <= 0) {
       this.error = 'Base salary must be greater than 0';
       return;
@@ -222,12 +179,7 @@ export class PayslipForm implements OnInit {
         next: () => {
           this.isPdfGenerated = true;
           alert('Payslip generated successfully!');
-          // Redirect based on role
-          if (this.isAdmin) {
-            void this.router.navigate(['/dashboard']);
-          } else {
-            void this.router.navigate(['/payslip-list']);
-          }
+          void this.router.navigate(['/payslip-list']);
         },
         error: (error) => this.handleError(error),
         complete: () => this.loading = false

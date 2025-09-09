@@ -4,10 +4,20 @@
     <div class="flex justify-between items-center">
       <div>
         <h1 class="text-3xl font-bold text-gray-800">Payslips</h1>
-
         <p class="text-gray-600 mt-2">Manage employee payslips</p>
       </div>
-
+      <div *ngIf="isHR">
+        <button 
+          (click)="generateSelectedPayslips()"
+          class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
+          [disabled]="loading || selectedPayslips.size === 0"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+          </svg>
+          Generate Selected Payslips
+        </button>
+      </div>
     </div>
   </div>
 
@@ -33,6 +43,16 @@
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-gray-50">
         <tr>
+          <th *ngIf="isHR"
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            <input 
+              type="checkbox" 
+              class="form-checkbox h-4 w-4 text-blue-600"
+              [checked]="selectAll"
+              (change)="toggleSelectAll()"
+            />
+          </th>
           <th
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           >
@@ -51,6 +71,16 @@
           <th
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           >
+            Allowances
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            Deductions
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
             Net Salary
           </th>
           <th
@@ -62,6 +92,14 @@
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
         <tr *ngFor="let payslip of payslips" class="hover:bg-gray-50">
+          <td *ngIf="isHR" class="px-6 py-4 whitespace-nowrap">
+            <input 
+              type="checkbox"
+              class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out"
+              [checked]="selectAll || selectedPayslips.has(payslip.id || 0)"
+              (change)="toggleSelectPayslip(payslip.id || 0)"
+            >
+          </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
             {{ payslip.employeeName }}
           </td>
@@ -72,10 +110,41 @@
             ₹{{ payslip.baseSalary | number : "1.2-2" }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            ₹{{ payslip.allowances | number : "1.2-2" }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            ₹{{ payslip.deductions | number : "1.2-2" }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
             ₹{{ payslip.netSalary | number : "1.2-2" }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm">
+            <!-- Update button for HR -->
             <button
+              *ngIf="isHR"
+              (click)="updatePayslip(payslip)"
+              class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none"
+              [disabled]="loading"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
+              </svg>
+              Update
+            </button>
+            <!-- Download PDF button for non-HR -->
+            <button
+              *ngIf="!isHR"
               (click)="downloadPdf(payslip.employeeId)"
               class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
               [disabled]="loading"
