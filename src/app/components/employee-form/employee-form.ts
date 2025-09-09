@@ -6,6 +6,7 @@ import {
   OnInit,
   OnChanges,
   SimpleChanges,
+  OnDestroy,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -27,6 +28,7 @@ import { EmployeeService } from '../../services/employee.service';
 import { DepartmentEmployeeService } from '../../services/department-employee.service';
 import { DepartmentEmployeeRequest } from '../../interfaces/departmentemployeerequest';
 import { AuthService } from '../../services/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-employee-form',
@@ -34,7 +36,7 @@ import { AuthService } from '../../services/auth.service';
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './employee-form.html',
 })
-export class EmployeeForm implements OnInit, OnChanges {
+export class EmployeeForm implements OnInit, OnChanges, OnDestroy {
   @Input() employee: Employee | null = null;
   roles: Role[] = [];
   departments: Department[] = [];
@@ -65,19 +67,50 @@ export class EmployeeForm implements OnInit, OnChanges {
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
-    private location:Location
+    private location: Location
   ) {
     this.initializeForm();
   }
 
   goBack(): void {
-    this.location.back();  // 🔹 Goes to previous page in history
+    this.location.back(); // 🔹 Goes to previous page in history
   }
+
+  allEmails: string[] = []; // 🔹 to store all existing emails
+  allPhNos: string[] = []; // 🔹 to store all existing phone numbers
+
+  // maxDob: string = ''; // max date for DOB (21 years ago from today)
+  private employeesSub!: Subscription;
 
   ngOnInit(): void {
     this.initializeForm();
     this.loadRoles();
     this.loadDepartments();
+
+    // const today = new Date();
+    // today.setFullYear(today.getFullYear() - 21); // subtract 21 years
+    // this.maxDob = today.toISOString().split('T')[0]; // format YYYY-MM-DD
+
+    // 🔹 load all existing emails
+    this.employeesSub = this.employeeService.getAllEmployees().subscribe({
+      next: (employees) => {
+        this.allEmails = employees.map((e: any) => e.email.toLowerCase());
+        this.allPhNos = employees.map((e: any) => e.mobileNumber);
+        // 🔹 Now attach the validator
+        const emailControl = this.employeeForm.get('email');
+        if (emailControl) {
+          emailControl.addValidators(this.uniqueEmailValidator);
+          emailControl.updateValueAndValidity();
+        }
+
+        const phoneControl = this.employeeForm.get('mobileNumber');
+        if (phoneControl) {
+          phoneControl.addValidators(this.uniquePhoneValidator);
+          phoneControl.updateValueAndValidity();
+        }
+      },
+      error: (err) => console.error('Error loading emails', err),
+    });
 
     // Check if we're editing an existing employee
     this.route.paramMap.subscribe((params) => {
@@ -114,6 +147,12 @@ export class EmployeeForm implements OnInit, OnChanges {
       }
     });
   }
+
+  ngOnDestroy() {
+  if (this.employeesSub) {
+    this.employeesSub.unsubscribe();
+  }
+}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['employee'] && this.employee) {
@@ -209,17 +248,7 @@ export class EmployeeForm implements OnInit, OnChanges {
     const isOwnProfile = this.isEditMode && currentUserId === this.employee?.id;
 
     this.employeeForm = this.fb.group({
-      employeeCode: [
-        {
-          value: '',
-          disabled: isOwnProfile,
-        },
-        [
-          Validators.required,
-          Validators.maxLength(20),
-          Validators.pattern(/^[A-Za-z0-9]+$/),
-        ],
-      ],
+      
       name: [
         '',
         [
@@ -236,7 +265,7 @@ export class EmployeeForm implements OnInit, OnChanges {
         '',
         [
           Validators.required,
-          Validators.pattern(/^[0-9]{10,15}$/),
+          Validators.pattern(/^[0-9]{10}$/), // 🔹 exactly 10 digits
           Validators.maxLength(15),
         ],
       ],
@@ -265,11 +294,42 @@ export class EmployeeForm implements OnInit, OnChanges {
           disabled: isOwnProfile,
         },
       ],
-      password: ['']
+      password: [''],
     });
 
     // No validators for password; optional in edit, hidden in create
   }
+
+  today: string = new Date().toISOString().split('T')[0]; // e.g. "2025-09-09"
+
+  private uniqueEmailValidator = (control: AbstractControl) => {
+    if (!control.value) return null;
+    const email = control.value.toLowerCase();
+
+    // If editing, allow the same email as the current employee
+    if (
+      this.isEditMode &&
+      this.employee &&
+      this.employee.email?.toLowerCase() === email
+    ) {
+      return null;
+    }
+
+    return this.allEmails.includes(email) ? { emailTaken: true } : null;
+  };
+
+  private uniquePhoneValidator = (control: AbstractControl) => {
+  if (!control.value) return null;
+  const phone = control.value;
+
+  // allow current employee's own phone when editing
+  if (this.isEditMode && this.employee && this.employee.mobileNumber === phone) {
+    return null;
+  }
+
+  return this.allPhNos.includes(phone) ? { phoneTaken: true } : null;
+};
+
 
   private populateForm(): void {
     if (this.employee) {
@@ -277,20 +337,20 @@ export class EmployeeForm implements OnInit, OnChanges {
       const isOwnProfile = currentUserId === this.employee.id;
 
       // Keep original form control states
-      const employeeCode = this.employeeForm.get('employeeCode');
+      
       const roleId = this.employeeForm.get('roleId');
       const status = this.employeeForm.get('status');
 
       // Disable fields if it's own profile
       if (isOwnProfile) {
-        employeeCode?.disable();
+       
         roleId?.disable();
         status?.disable();
       }
 
       // Set form values
       this.employeeForm.patchValue({
-        employeeCode: this.employee.employeeCode,
+        
         name: this.employee.name,
         email: this.employee.email,
         mobileNumber: this.employee.mobileNumber,
@@ -638,88 +698,44 @@ export class EmployeeForm implements OnInit, OnChanges {
   }
 
   private createFormData(): FormData {
-    const formData = new FormData();
+  const formData = new FormData();
+  const formValue = this.employeeForm.getRawValue();
 
-    // Use getRawValue() to get all form values including disabled fields
-    const formValue = this.employeeForm.getRawValue();
-
-    // Add form fields to FormData
-    Object.keys(formValue).forEach((key) => {
-      const value = formValue[key];
-      if (value !== null && value !== undefined && value !== '') {
-        if (key === 'dob' && value) {
-          // Convert date to ISO string for backend
-          formData.append(key, new Date(value).toISOString());
-        } else {
-          formData.append(key, value.toString());
-        }
-      }
-    });
-
-    // Default password as mobile number on create
-    if (!this.isEditMode) {
-      const mobile = formValue.mobileNumber;
-
-      const formValues = this.employeeForm.value;
-
-      // Add required fields first
-      formData.append('employeeCode', formValues.employeeCode || '');
-      formData.append('name', formValues.name || '');
-      formData.append('email', formValues.email || '');
-      formData.append('mobileNumber', formValues.mobileNumber || '');
-      formData.append('gender', formValues.gender || '');
-      formData.append('roleId', formValues.roleId?.toString() || '');
-
-      // Add optional fields
-      if (formValues.dob) {
-        formData.append('dob', formValues.dob);
-      }
-
-      // Add status
-      formData.append('status', (formValues.status ?? true).toString());
-
-      if (mobile) {
-        formData.append('password', mobile);
+  // Add all normal form fields
+  Object.keys(formValue).forEach((key) => {
+    const value = formValue[key];
+    if (value !== null && value !== undefined && value !== '') {
+      if (key === 'dob' && value) {
+        formData.append(key, new Date(value).toISOString());
+      } else {
+        formData.append(key, value.toString());
       }
     }
+  });
 
-    // Add departments as a JSON string
-    if (this.selectedDepartments && this.selectedDepartments.length > 0) {
-      formData.append(
-        'departmentIds',
-        JSON.stringify(this.selectedDepartments)
-      );
-    }
-
-    // Add profile photo if selected
-    if (this.selectedFile) {
-      formData.append('profilePhoto', this.selectedFile);
-    }
-
-    // Log the data being sent
-    console.log('Form Values:', formValue);
-    console.log('Selected Departments:', this.selectedDepartments);
-
-    // Log each key-value pair in FormData
-    formData.forEach((value, key) => {
-      console.log(`${key}:`, value);
-    }); // Add selected departments
-    this.selectedDepartments.forEach((deptId) => {
-      formData.append('departmentIds', deptId.toString());
-    });
-
-    // Add file if selected
-    if (this.selectedFile) {
-      formData.append('profilePhoto', this.selectedFile);
-    }
-
-    // Add employee ID for edit mode
-    if (this.isEditMode && this.employee?.id) {
-      formData.append('id', this.employee.id.toString());
-    }
-
-    return formData;
+  // Default password = mobile number (on create only)
+  if (!this.isEditMode && formValue.mobileNumber) {
+    formData.append('password', formValue.mobileNumber);
   }
+
+  // ✅ Departments: send each ID as separate field in FormData
+  this.selectedDepartments.forEach((deptId) => {
+    formData.append('departmentIds', deptId.toString());
+  });
+
+  // ✅ Profile photo: add only once
+  if (this.selectedFile) {
+    formData.append('profilePhoto', this.selectedFile);
+  }
+
+  // Add ID for edit mode
+  if (this.isEditMode && this.employee?.id) {
+    formData.append('id', this.employee.id.toString());
+  }
+
+  return formData;
+}
+
 
   onCancel(): void {
     this.router.navigate(['/dashboard']);
@@ -739,14 +755,14 @@ export class EmployeeForm implements OnInit, OnChanges {
       if (errors['required'])
         return `${this.getFieldLabel(fieldName)} is required`;
       if (errors['email']) return 'Please enter a valid email address';
+      if (errors['emailTaken']) return 'This email is already in use';
+      if (errors['phoneTaken']) return 'This phone number is already in use';
       if (errors['pattern']) {
         switch (fieldName) {
-          case 'employeeCode':
-            return 'Employee code should contain only letters and numbers';
           case 'name':
             return 'Name should contain only letters and spaces';
           case 'mobileNumber':
-            return 'Please enter a valid mobile number';
+            return 'Please enter a 10 digits valid mobile number';
           case 'roleId':
             return 'Please select a valid role';
           case 'password':
@@ -767,7 +783,6 @@ export class EmployeeForm implements OnInit, OnChanges {
 
   private getFieldLabel(fieldName: string): string {
     const labels: { [key: string]: string } = {
-      employeeCode: 'Employee Code',
       name: 'Name',
       email: 'Email',
       mobileNumber: 'Mobile Number',
