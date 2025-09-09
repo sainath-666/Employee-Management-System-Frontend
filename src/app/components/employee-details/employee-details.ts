@@ -90,7 +90,7 @@ export class EmployeeDetails implements OnInit {
     next: (allDepts) => {
       this.departments = allDepts;
       const deptMap = new Map(allDepts.map(d => [d.id, d.departmentName]));
-
+     
       // Step 2: load employees
       this.employeeService.getAllEmployees().subscribe({
         next: (data) => {
@@ -106,8 +106,10 @@ export class EmployeeDetails implements OnInit {
             role: emp.role ?? emp.roleName ?? '',
             status: emp.status,
             gender: emp.gender,
-            departments: [] // will fill next
+            departments: [] 
           }));
+
+          // console.log(data)
 
           // Step 3: fetch department IDs for each employee
           this.employees.forEach((emp) => {
@@ -116,6 +118,7 @@ export class EmployeeDetails implements OnInit {
                 // deptAssignments contains IDs → map to names
                 emp.departments = deptAssignments
                   .map(d => deptMap.get(d.id) || "Unknown");
+                  
               },
               error: (err) => {
                 console.error(`Error fetching departments for employee ${emp.id}`, err);

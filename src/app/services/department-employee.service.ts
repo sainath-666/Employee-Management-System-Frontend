@@ -34,17 +34,17 @@ export class DepartmentEmployeeService {
   getDepartmentsForEmployee(
     employeeId: number
   ): Observable<DepartmentDetails[]> {
-    console.log('Fetching departments for employee:', employeeId);
+    // console.log('Fetching departments for employee:', employeeId);
     return this.http
       .get<DepartmentDetails[]>(`${this.baseUrl}/${employeeId}`)
       .pipe(
         tap((response) => {
-          console.log(
-            'Department API Response for employee',
-            employeeId,
-            ':',
-            response
-          );
+          // console.log(
+          //   'Department API Response for employee',
+          //   employeeId,
+          //   ':',
+          //   response
+          // );
         })
       );
   }

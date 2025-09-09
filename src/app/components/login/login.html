@@ -1,4 +1,3 @@
-
 <div
   class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
 >
@@ -13,76 +12,81 @@
       [formGroup]="loginForm"
       (ngSubmit)="onSubmit()"
     >
+      <!-- General error message -->
       <div
         *ngIf="errorMessage"
         class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
       >
         {{ errorMessage }}
       </div>
-      <div class="rounded-md shadow-sm -space-y-px">
-        <!-- Email Field -->
-        <div>
-          <label for="email" class="sr-only">Email address</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            formControlName="email"
-            [ngClass]="{
-              'border-red-500':
-                loginForm.get('email')?.touched &&
-                loginForm.get('email')?.invalid
-            }"
-            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-            placeholder="Email address"
-          />
-          <div
-            *ngIf="
-              loginForm.get('email')?.touched && loginForm.get('email')?.invalid
-            "
-            class="text-red-500 text-sm mt-1"
-          >
-            <span *ngIf="loginForm.get('email')?.errors?.['required']"
-              >Email is required</span
-            >
-            <span *ngIf="loginForm.get('email')?.errors?.['email']"
-              >Please enter a valid email</span
-            >
-          </div>
-        </div>
 
-        <!-- Password Field -->
-        <div>
-          <label for="password" class="sr-only">Password</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            formControlName="password"
-            [ngClass]="{
-              'border-red-500':
-                loginForm.get('password')?.touched &&
-                loginForm.get('password')?.invalid
-            }"
-            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-            placeholder="Password"
-          />
-          <div
-            *ngIf="
-              loginForm.get('password')?.touched &&
-              loginForm.get('password')?.invalid
-            "
-            class="text-red-500 text-sm mt-1"
-          >
-            <span *ngIf="loginForm.get('password')?.errors?.['required']"
-              >Password is required</span
-            >
-            <span *ngIf="loginForm.get('password')?.errors?.['minlength']"
-              >Password must be at least 6 characters</span
-            >
-          </div>
+      <!-- Email Field -->
+      <div class="space-y-1">
+        <label for="email" class="sr-only">Email address</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          formControlName="email"
+          [ngClass]="{
+            'border-red-500': loginForm.get('email')?.touched && loginForm.get('email')?.invalid
+          }"
+          class="appearance-none block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          placeholder="Email address"
+        />
+        <!-- Email Error Message -->
+        <div *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid" class="text-red-500 text-sm">
+          <span *ngIf="loginForm.get('email')?.errors?.['required']">Email is required</span>
+          <span *ngIf="loginForm.get('email')?.errors?.['email']">Please enter a valid email</span>
         </div>
       </div>
+
+      <!-- Password Field -->
+      <!-- Password Field -->
+<div class="space-y-1">
+  <label for="password" class="sr-only">Password</label>
+
+  <!-- Input + Eye Icon Wrapper -->
+  <div class="relative">
+    <input
+      id="password"
+      name="password"
+      [type]="showPassword ? 'text' : 'password'"
+      formControlName="password"
+      [ngClass]="{
+        'border-red-500': loginForm.get('password')?.touched && loginForm.get('password')?.invalid
+      }"
+      class="appearance-none block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm pr-10"
+      placeholder="Password"
+    />
+
+    <!-- Eye Icon Button -->
+    <button
+      type="button"
+      (click)="showPassword = !showPassword"
+      class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none rounded-md transition-colors duration-150"
+      [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+    >
+      <!-- Eye Open Icon -->
+      <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+      </svg>
+
+      <!-- Eye Closed Icon -->
+      <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Password Error Message (outside input wrapper) -->
+  <div *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid" class="text-red-500 text-sm">
+    <span *ngIf="loginForm.get('password')?.errors?.['required']">Password is required</span>
+    <span *ngIf="loginForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters</span>
+  </div>
+</div>
+
 
       <div>
         <button
@@ -96,8 +100,4 @@
       </div>
     </form>
   </div>
-
-
-
 </div>
-
