@@ -49,6 +49,18 @@ export class DepartmentEmployeeService {
       );
   }
 
+  // Get employee count for a department
+  getEmployeeCountForDepartment(departmentId: number): Observable<number> {
+    return this.http.get<number>(`${this.baseUrl}/count/${departmentId}`);
+  }
+
+  // Get all employees in a specific department
+  getDepartmentEmployees(departmentId: number): Observable<number> {
+    return this.http.get<number>(
+      `${this.baseUrl}/department/${departmentId}/count`
+    );
+  }
+
   // Remove a department from an employee
   removeDepartmentFromEmployee(
     employeeId: number,

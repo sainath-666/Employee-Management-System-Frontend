@@ -7,6 +7,7 @@ import { EmployeeService } from '../../services/employee.service';
 import { DepartmentService } from '../../services/department.service';
 import { LeaveService } from '../../services/leave.service';
 import { DepartmentEmployeeService } from '../../services/department-employee.service';
+import { PayslipService } from '../../services/payslip.service';
 import { StatusEnum } from '../../models/statusEnum';
 import { Employee } from '../../interfaces/employee';
 
@@ -24,6 +25,7 @@ interface DashboardStats {
   pendingLeaves?: number;
   employeesOnLeave?: number;
   leaveBalance?: number;
+  departmentName?: string;
   departmentEmployeeCount?: number;
   payslipStatus?: string;
 }
@@ -166,8 +168,8 @@ export class Dashboard implements OnInit {
         color: 'text-blue-600',
       },
       {
-        label: 'Department Size',
-        value: () => this.statistics.departmentEmployeeCount!,
+        label: 'Department',
+        value: () => this.statistics.departmentName || 'Not Available',
         color: 'text-violet-600',
       },
       {
@@ -184,7 +186,8 @@ export class Dashboard implements OnInit {
     private employeeService: EmployeeService,
     private departmentService: DepartmentService,
     private leaveService: LeaveService,
-    private departmentEmployeeService: DepartmentEmployeeService
+    private departmentEmployeeService: DepartmentEmployeeService,
+    private payslipService: PayslipService
   ) {
     Chart.register(...registerables);
     const roleId = this.authService.getUserRole();
@@ -198,10 +201,133 @@ export class Dashboard implements OnInit {
   }
 
   ngOnInit() {
-    this.loadEmployeeStats();
-    this.loadLeaveStats();
+    const employeeId = this.authService.getCurrentEmployeeId();
+    if (employeeId) {
+      this.currentUser.id = employeeId;
+    }
+
+    // Set default leave balance
+    this.statistics.leaveBalance = 15;
+
+    if (this.currentUser.role === UserRole.EMPLOYEE) {
+      this.loadEmployeeDepartmentData();
+      this.loadPayslipStatus(this.currentUser.id);
+    } else {
+      this.loadEmployeeStats();
+      this.loadLeaveStats();
+    }
     this.updateRecentActivities();
   }
+
+  private loadEmployeeDepartmentData() {
+    this.departmentEmployeeService
+      .getDepartmentsForEmployee(this.currentUser.id)
+      .subscribe({
+        next: (departments) => {
+          if (departments && departments.length > 0) {
+            const department = departments[0];
+            this.statistics.departmentName = department.departmentName;
+
+            // Get all employees to count department size
+            this.employeeService.getAllEmployees().subscribe({
+              next: (employees: any[]) => {
+                let departmentSize = 0;
+                let processedCount = 0;
+
+                employees.forEach((employee) => {
+                  this.departmentEmployeeService
+                    .getDepartmentsForEmployee(employee.id)
+                    .subscribe({
+                      next: (empDepartments) => {
+                        if (
+                          empDepartments.some(
+                            (dept) => dept.id === department.id
+                          )
+                        ) {
+                          departmentSize++;
+                        }
+                        processedCount++;
+
+                        if (processedCount === employees.length) {
+                          this.statistics.departmentEmployeeCount =
+                            departmentSize;
+                          this.departments = [
+                            {
+                              name: 'Department Size',
+                              count: departmentSize,
+                            },
+                            {
+                              name: 'Leave Balance',
+                              count: 15, // Fixed value for all employees
+                            },
+                          ];
+                          setTimeout(() => this.initializeDepartmentChart(), 0);
+                        }
+                      },
+                      error: () => {
+                        processedCount++;
+                        if (processedCount === employees.length) {
+                          this.updateChartWithDefaultValues();
+                        }
+                      },
+                    });
+                });
+              },
+              error: (err: Error) => {
+                console.error('Error fetching employees:', err);
+                this.updateChartWithDefaultValues();
+              },
+            });
+          } else {
+            this.updateChartWithDefaultValues();
+          }
+        },
+        error: (err: Error) => {
+          console.error('Error fetching employee department:', err);
+          this.statistics.departmentName = 'Not Available';
+          this.updateChartWithDefaultValues();
+        },
+      });
+  }
+
+  private updateChartWithDefaultValues() {
+    this.statistics.departmentEmployeeCount = 1;
+    this.departments = [
+      {
+        name: 'Department Size',
+        count: 1,
+      },
+      {
+        name: 'Leave Balance',
+        count: this.statistics.leaveBalance || 15,
+      },
+    ];
+    setTimeout(() => this.initializeDepartmentChart(), 0);
+  }
+
+  private loadPayslipStatus(employeeId: number) {
+    this.payslipService.getPayslipsByEmployeeId(employeeId).subscribe({
+      next: (payslips) => {
+        if (payslips && payslips.length > 0) {
+          const lastPayslip = payslips[payslips.length - 1];
+          // If there's a PDF generated, show as Generated
+          if (lastPayslip.pdfPath) {
+            this.statistics.payslipStatus = 'Generated';
+          } else {
+            this.statistics.payslipStatus = 'Processing';
+          }
+        } else {
+          this.statistics.payslipStatus = 'Pending';
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching payslip status:', error);
+        this.statistics.payslipStatus = 'Not Available';
+      },
+    });
+  }
+
+  // Removed loadEmployeeLeaveBalance as we're using fixed value of 15 for all employees
 
   private loadEmployeeStats() {
     this.employeeService.getAllEmployees().subscribe({
@@ -214,12 +340,11 @@ export class Dashboard implements OnInit {
           (e) => e.status === false
         ).length;
 
-        // After getting employees, fetch departments
+        // After getting employees, fetch departments for Admin/HR view
         this.loadDepartmentsData(employees);
       },
       error: (error) => {
         console.error('Error fetching employees:', error);
-        // Initialize with zeros in case of error
         this.statistics.totalEmployees = 0;
         this.statistics.activeEmployees = 0;
         this.statistics.inactiveEmployees = 0;
@@ -231,8 +356,6 @@ export class Dashboard implements OnInit {
     this.leaveService.getAllLeaveRequests().subscribe({
       next: (leaves) => {
         const today = new Date();
-
-        // Count employees currently on leave
         this.statistics.employeesOnLeave = leaves.filter((l) => {
           if (!l.startDate || !l.endDate) return false;
           const start = new Date(l.startDate);
@@ -242,7 +365,6 @@ export class Dashboard implements OnInit {
           );
         }).length;
 
-        // Count pending leaves
         this.statistics.pendingLeaves = leaves.filter(
           (l) => l.status === StatusEnum.Pending
         ).length;
@@ -261,7 +383,6 @@ export class Dashboard implements OnInit {
         this.statistics.totalDepartments = departments.length;
         this.departments = [];
 
-        // Create a map to store department data while we fetch counts
         const departmentMap = new Map(
           departments.map((dept) => [
             dept.id,
@@ -272,14 +393,12 @@ export class Dashboard implements OnInit {
         let processedEmployees = 0;
         const totalEmployees = employees.length;
 
-        // For each employee, get their department assignments
         employees.forEach((employee) => {
           if (employee.id) {
             this.departmentEmployeeService
               .getDepartmentsForEmployee(employee.id)
               .subscribe({
                 next: (employeeDepartments) => {
-                  // Update counts for each department this employee belongs to
                   employeeDepartments.forEach((dept) => {
                     const departmentData = departmentMap.get(dept.id);
                     if (departmentData) {
@@ -288,11 +407,8 @@ export class Dashboard implements OnInit {
                   });
 
                   processedEmployees++;
-                  // Check if all employees have been processed
                   if (processedEmployees === totalEmployees) {
-                    // Convert map to array for the chart
                     this.departments = Array.from(departmentMap.values());
-                    // Initialize chart after getting all department data
                     setTimeout(() => this.initializeDepartmentChart(), 0);
                   }
                 },
@@ -302,7 +418,6 @@ export class Dashboard implements OnInit {
                     error
                   );
                   processedEmployees++;
-                  // Even if there's an error, check if all employees have been processed
                   if (processedEmployees === totalEmployees) {
                     this.departments = Array.from(departmentMap.values());
                     setTimeout(() => this.initializeDepartmentChart(), 0);
@@ -329,67 +444,138 @@ export class Dashboard implements OnInit {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Destroy existing chart if it exists
     if (this.departmentChart) {
       this.departmentChart.destroy();
     }
 
-    // Create new chart
-    this.departmentChart = new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: this.departments.map((dept) => `${dept.name} (${dept.count})`),
-        datasets: [
-          {
-            data: this.departments.map((dept) => dept.count),
-            backgroundColor: this.departments.map((_, index) => {
-              const colors = [
-                '#3B82F6', // Blue
-                '#10B981', // Green
-                '#F59E0B', // Yellow
-                '#8B5CF6', // Purple
-                '#EC4899', // Pink
-                '#6366F1', // Indigo
-              ];
-              return colors[index % colors.length];
-            }),
-            borderColor: '#ffffff',
-            borderWidth: 3,
-            hoverBorderWidth: 0,
-            hoverOffset: 15,
-            spacing: 2,
-            borderRadius: 2,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'right',
-            labels: {
-              padding: 15,
-              usePointStyle: true,
-              font: {
+    if (this.currentUser.role === UserRole.EMPLOYEE) {
+      // Employee view - bar chart showing their department size and leave balance
+      this.departmentChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: this.departments.map((dept) => dept.name),
+          datasets: [
+            {
+              data: this.departments.map((dept) => dept.count),
+              backgroundColor: [
+                '#3B82F6', // Blue for Department Size
+                '#10B981', // Green for Leave Balance
+              ],
+              borderColor: '#ffffff',
+              borderWidth: 1,
+              borderRadius: 8,
+              maxBarThickness: 50,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: {
+            legend: {
+              display: false,
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              bodyFont: {
                 size: 13,
                 family: "'Inter', sans-serif",
-                weight: 500,
+              },
+              callbacks: {
+                label: (context) => {
+                  return `${context.raw}`;
+                },
               },
             },
           },
-          tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            padding: 12,
-            bodySpacing: 4,
-            bodyFont: {
-              size: 13,
-              family: "'Inter', sans-serif",
+          scales: {
+            x: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)',
+              },
+              ticks: {
+                font: {
+                  size: 12,
+                },
+              },
+            },
+            y: {
+              grid: {
+                display: false,
+              },
+              ticks: {
+                font: {
+                  size: 14,
+                  weight: 500,
+                },
+              },
             },
           },
         },
-      },
-    });
+      });
+    } else {
+      // Admin/HR view - pie chart showing department distribution
+      this.departmentChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: this.departments.map(
+            (dept) => `${dept.name} (${dept.count})`
+          ),
+          datasets: [
+            {
+              data: this.departments.map((dept) => dept.count),
+              backgroundColor: this.departments.map((_, index) => {
+                const colors = [
+                  '#3B82F6', // Blue
+                  '#10B981', // Green
+                  '#F59E0B', // Yellow
+                  '#8B5CF6', // Purple
+                  '#EC4899', // Pink
+                  '#6366F1', // Indigo
+                ];
+                return colors[index % colors.length];
+              }),
+              borderColor: '#ffffff',
+              borderWidth: 3,
+              hoverBorderWidth: 0,
+              hoverOffset: 15,
+              spacing: 2,
+              borderRadius: 2,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                padding: 15,
+                usePointStyle: true,
+                font: {
+                  size: 13,
+                  family: "'Inter', sans-serif",
+                  weight: 500,
+                },
+              },
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              bodySpacing: 4,
+              bodyFont: {
+                size: 13,
+                family: "'Inter', sans-serif",
+              },
+            },
+          },
+        },
+      });
+    }
   }
 
   private formatDate(date: string | Date | undefined): string {
@@ -446,7 +632,6 @@ export class Dashboard implements OnInit {
     }
   }
 
-  // Navigation methods
   private addEmployee(): void {
     this.router.navigate(['/employee-form']);
   }
