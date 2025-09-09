@@ -311,6 +311,11 @@ export class PayslipForm implements OnInit {
         console.log('Server response:', response);
         this.isPdfGenerated = true;
         alert('Payslip generated successfully!');
+        this.initializeForm(); // Reset the form
+        if (this.#employee) {
+          this.updateFormWithEmployeeData(); // Restore employee data
+        }
+        this.#showPreview = false; // Hide preview if showing
         void this.router.navigate(['/payslips']);
       },
       error: (error: any) => {
