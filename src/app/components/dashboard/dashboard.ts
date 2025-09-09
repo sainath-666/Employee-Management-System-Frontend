@@ -621,7 +621,7 @@ export class Dashboard implements OnInit {
       this.employeeService.getAllEmployees().subscribe({
         next: (employees) => {
           const employeeMap = new Map(
-            employees.map((emp) => [emp.id, `${emp.firstName} ${emp.lastName}`])
+            employees.map((emp) => [emp.id, `${emp.name}`])
           );
 
           // Get leave requests
@@ -681,7 +681,7 @@ export class Dashboard implements OnInit {
             .slice(0, 3)
             .map((emp) => ({
               action: 'New Employee Added',
-              details: `${emp.firstName} ${emp.lastName} | ${
+              details: `${emp.name} | ${
                 emp.email || 'No email'
               }`,
               time: new Date(emp.createdDateTime || new Date()),
