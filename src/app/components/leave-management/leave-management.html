@@ -1,138 +1,201 @@
 <div class="container">
   <!-- Header -->
-  <div class="header">
-    @if (isHr) {
-      <h1>HR Leave Management</h1>
-    }
-    @if (!isHr) {
-    <h1>Leave Status</h1>
-    }
+  <div class="page-header">
+    <div class="header-content">
+      @if (isHr) {
+      <div class="title-section">
+        <h1>HR Leave Management</h1>
+        <p class="subtitle">Manage employee leave requests and approvals</p>
+      </div>
+      } @else {
+      <div class="title-section">
+        <h1>Leave Status</h1>
+        <p class="subtitle">Track your leave requests and their status</p>
+      </div>
+      }
+    </div>
   </div>
 
   <!-- Loading Spinner -->
   @if (isLoading) {
   <div class="loading-container">
     <mat-spinner diameter="40"></mat-spinner>
+    <p class="loading-text">Loading leave requests...</p>
   </div>
   }
 
   <!-- Error Message -->
   @if (error) {
   <div class="error-message">
-    {{ error }}
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <p>{{ error }}</p>
   </div>
   }
 
-  <!-- Leave Requests Table -->
+  <!-- Leave Requests -->
   @if (!isLoading && !error) {
-  <div class="table-container">
-    <div class="table-responsive">
-      <table>
-        <thead>
-          <tr>
-            <th style="min-width: 150px">Employee Name</th>
-            @if (isHr) {
-            <th style="min-width: 150px">Department</th>
-            }
-            <th style="min-width: 120px">Type</th>
-            <th style="min-width: 150px">Duration</th>
-            <th style="min-width: 200px">Reason</th>
-            <th style="min-width: 100px">Status</th>
-            @if (isHr) {
-            <th style="min-width: 180px">Actions</th>
-            }
-          </tr>
-        </thead>
-        <tbody>
-          @for (request of leaveRequests; track request.id) {
-          <tr>
-            <td>{{ employeeNames.get(request.employeeId) }}</td>
-            @if (isHr) {
-            <td>
-              {{ employeeDepartments.get(request.employeeId) || "Loading..." }}
-            </td>
-            }
-            <td class="leave-type">
-              {{ getLeaveTypeLabel(request.leaveTypeID) }}
-            </td>
-            <td>
-              <div class="duration">
-                <span class="duration-days">{{
-                  getDuration(request.startDate, request.endDate)
-                }}</span>
-                <span class="duration-dates"
-                  >{{ request.startDate }} to {{ request.endDate }}</span
-                >
-              </div>
-            </td>
-            <td>
-              <div
-                class="reason-cell"
-                [matTooltip]="request.reason"
-                matTooltipPosition="above"
-              >
-                {{ request.reason }}
-              </div>
-            </td>
-            <td>
-              <span
-                class="status-chip"
-                [class.status-approved]="request.status === StatusEnum.Accepted"
-                [class.status-rejected]="request.status === StatusEnum.Rejected"
-                [class.status-pending]="request.status === StatusEnum.Pending"
-              >
-                {{ getStatusLabel(request.status) }}
-              </span>
-            </td>
-            @if (isHr) {
-            <td>
-              <div class="action-buttons">
-                @if (request.status === StatusEnum.Pending) {
-                <button
-                  class="btn btn-approve"
-                  (click)="approveLeave(request.id)"
-                  matTooltip="Approve Leave"
-                >
-                  <mat-icon>check</mat-icon>
-                  <span>Approve</span>
-                </button>
-                <button
-                  class="btn btn-reject"
-                  (click)="rejectLeave(request.id)"
-                  matTooltip="Reject Leave"
-                >
-                  <mat-icon>close</mat-icon>
-                  <span>Reject</span>
-                </button>
-                } @else {
-                <div
-                  class="action-info"
-                  [class.approved-info]="request.status === StatusEnum.Accepted"
-                  [class.rejected-info]="request.status === StatusEnum.Rejected"
-                  [matTooltip]="request.reason"
-                >
-                  <mat-icon>{{
-                    request.status === StatusEnum.Accepted
-                      ? "check_circle"
-                      : "cancel"
-                  }}</mat-icon>
-                  <div class="action-details">
-                    <span class="action-by">{{
-                      request.updatedBy || "N/A"
-                    }}</span>
-                    <span class="action-date">{{
-                      formatDate(request.updatedDateTime)
-                    }}</span>
-                  </div>
+  <div class="leave-requests-container">
+    <div class="table-container">
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th style="min-width: 150px">
+                <div class="th-content">
+                  <mat-icon class="th-icon">person</mat-icon>
+                  Employee Name
                 </div>
-                }
-              </div>
-            </td>
+              </th>
+              @if (isHr) {
+              <th style="min-width: 150px">
+                <div class="th-content">
+                  <mat-icon class="th-icon">business</mat-icon>
+                  Department
+                </div>
+              </th>
+              }
+              <th style="min-width: 120px">
+                <div class="th-content">
+                  <mat-icon class="th-icon">event_note</mat-icon>
+                  Type
+                </div>
+              </th>
+              <th style="min-width: 150px">
+                <div class="th-content">
+                  <mat-icon class="th-icon">date_range</mat-icon>
+                  Duration
+                </div>
+              </th>
+              <th style="min-width: 200px">
+                <div class="th-content">
+                  <mat-icon class="th-icon">description</mat-icon>
+                  Reason
+                </div>
+              </th>
+              <th style="min-width: 100px">
+                <div class="th-content">
+                  <mat-icon class="th-icon">info</mat-icon>
+                  Status
+                </div>
+              </th>
+              @if (isHr) {
+              <th style="min-width: 180px">
+                <div class="th-content">
+                  <mat-icon class="th-icon">settings</mat-icon>
+                  Actions
+                </div>
+              </th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (request of leaveRequests; track request.id) {
+            <tr>
+              <td>{{ employeeNames.get(request.employeeId) }}</td>
+              @if (isHr) {
+              <td>
+                {{
+                  employeeDepartments.get(request.employeeId) || "Loading..."
+                }}
+              </td>
+              }
+              <td>
+                <span
+                  class="leave-type"
+                  [title]="getLeaveTypeLabel(request.leaveTypeID)"
+                >
+                  {{ getLeaveTypeLabel(request.leaveTypeID) }}
+                </span>
+              </td>
+              <td>
+                <div class="duration">
+                  <span class="duration-days">
+                    {{ getDuration(request.startDate, request.endDate) }}
+                  </span>
+                  <span class="duration-dates">
+                    {{ request.startDate }} to {{ request.endDate }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <div
+                  class="reason-cell"
+                  [matTooltip]="request.reason"
+                  matTooltipPosition="above"
+                >
+                  {{ request.reason }}
+                </div>
+              </td>
+              <td>
+                <span
+                  class="status-chip"
+                  [class.status-approved]="
+                    request.status === StatusEnum.Accepted
+                  "
+                  [class.status-rejected]="
+                    request.status === StatusEnum.Rejected
+                  "
+                  [class.status-pending]="request.status === StatusEnum.Pending"
+                >
+                  {{ getStatusLabel(request.status) }}
+                </span>
+              </td>
+              @if (isHr) {
+              <td>
+                <div class="action-buttons">
+                  @if (request.status === StatusEnum.Pending) {
+                  <button
+                    class="btn btn-approve"
+                    (click)="approveLeave(request.id)"
+                    matTooltip="Approve Leave"
+                  >
+                    <mat-icon>check</mat-icon>
+                    <span>Approve</span>
+                  </button>
+                  <button
+                    class="btn btn-reject"
+                    (click)="rejectLeave(request.id)"
+                    matTooltip="Reject Leave"
+                  >
+                    <mat-icon>close</mat-icon>
+                    <span>Reject</span>
+                  </button>
+                  } @else {
+                  <div
+                    class="action-info"
+                    [class.approved-info]="
+                      request.status === StatusEnum.Accepted
+                    "
+                    [class.rejected-info]="
+                      request.status === StatusEnum.Rejected
+                    "
+                    [matTooltip]="request.reason"
+                  >
+                    <mat-icon>
+                      {{
+                        request.status === StatusEnum.Accepted
+                          ? "check_circle"
+                          : "cancel"
+                      }}
+                    </mat-icon>
+                    <div class="action-details">
+                      <span class="action-by">{{
+                        request.updatedBy || "N/A"
+                      }}</span>
+                      <span class="action-date">{{
+                        formatDate(request.updatedDateTime)
+                      }}</span>
+                    </div>
+                  </div>
+                  }
+                </div>
+              </td>
+              }
+            </tr>
             }
-          </tr>
-          }
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
   }
