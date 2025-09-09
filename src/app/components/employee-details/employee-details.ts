@@ -52,6 +52,10 @@ export class EmployeeDetails implements OnInit {
   isHR(): boolean {
     return this.authService.isHR();
   }
+
+  isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
   imageUrl?: string;
   generatePayslip(employee: Employee): void {
     this.router.navigate(['/payslip-form'], { 
@@ -72,6 +76,10 @@ export class EmployeeDetails implements OnInit {
   ngOnInit(): void {
     this.loadEmployees();
     this.imageUrl = this.employeeService.imageApiUrl;
+  }
+
+  addEmployee():void{
+    this.router.navigate(['/employee-form']);
   }
 
   
