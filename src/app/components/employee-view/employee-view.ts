@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { EmployeeService } from '../../services/employee.service';
 
@@ -28,7 +28,8 @@ export class EmployeeViewComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private employeeService: EmployeeService
+    private employeeService: EmployeeService,
+    private location:Location
   ) {}
 
   ngOnInit(): void {
@@ -38,6 +39,10 @@ export class EmployeeViewComponent implements OnInit {
         this.loadEmployeeDetails(Number(id));
       }
     });
+  }
+
+  goBack(): void {
+    this.location.back();  // 🔹 Goes to previous page in history
   }
 
   loadEmployeeDetails(id: number): void {

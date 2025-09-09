@@ -15,7 +15,7 @@ import {
   FormControl,
   AbstractControl,
 } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Employee } from '../../interfaces/employee';
 import { RolesService, Role } from '../../services/roles.service';
@@ -64,9 +64,14 @@ export class EmployeeForm implements OnInit, OnChanges {
     private departmentEmployeeService: DepartmentEmployeeService,
     private route: ActivatedRoute,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private location:Location
   ) {
     this.initializeForm();
+  }
+
+  goBack(): void {
+    this.location.back();  // 🔹 Goes to previous page in history
   }
 
   ngOnInit(): void {
