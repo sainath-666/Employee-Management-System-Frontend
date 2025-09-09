@@ -665,6 +665,72 @@ export class Dashboard implements OnInit {
           this.recentActivities = [];
         },
       });
+    } else {
+      // Admin view - show employee and department additions
+      const activities: { action: string; details: string; time: Date }[] = [];
+
+      // Get recently added employees
+      this.employeeService.getAllEmployees().subscribe({
+        next: (employees) => {
+          const recentEmployees = employees
+            .sort(
+              (a, b) =>
+                new Date(b.createdDateTime || 0).getTime() -
+                new Date(a.createdDateTime || 0).getTime()
+            )
+            .slice(0, 3)
+            .map((emp) => ({
+              action: 'New Employee Added',
+              details: `${emp.firstName} ${emp.lastName} | ${
+                emp.email || 'No email'
+              }`,
+              time: new Date(emp.createdDateTime || new Date()),
+            }));
+
+          activities.push(...recentEmployees);
+          updateActivitiesList();
+        },
+        error: (error) => {
+          console.error('Error fetching employees:', error);
+          updateActivitiesList();
+        },
+      });
+
+      // Get recently added departments
+      this.departmentService.getAllDepartments().subscribe({
+        next: (departments) => {
+          const recentDepartments = departments
+            .sort(
+              (a, b) =>
+                new Date(b.createdDateTime || 0).getTime() -
+                new Date(a.createdDateTime || 0).getTime()
+            )
+            .slice(0, 2)
+            .map((dept) => ({
+              action: 'New Department Added',
+              details: dept.departmentName || 'Unnamed Department',
+              time: new Date(dept.createdDateTime || new Date()),
+            }));
+
+          activities.push(...recentDepartments);
+          updateActivitiesList();
+        },
+        error: (error) => {
+          console.error('Error fetching departments:', error);
+          updateActivitiesList();
+        },
+      });
+
+      const updateActivitiesList = () => {
+        this.recentActivities = activities
+          .sort((a, b) => b.time.getTime() - a.time.getTime())
+          .slice(0, 5)
+          .map((activity) => ({
+            action: activity.action,
+            details: activity.details,
+            time: this.getTimeAgo(activity.time),
+          }));
+      };
     }
   }
 
