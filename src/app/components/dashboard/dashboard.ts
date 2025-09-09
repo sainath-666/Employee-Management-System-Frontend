@@ -621,7 +621,7 @@ export class Dashboard implements OnInit {
       this.employeeService.getAllEmployees().subscribe({
         next: (employees) => {
           const employeeMap = new Map(
-            employees.map((emp) => [emp.id, `${emp.firstName} ${emp.lastName}`])
+            employees.map((emp) => [emp.id, `${emp.name} `])
           );
 
           // Get leave requests
