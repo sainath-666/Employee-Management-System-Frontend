@@ -681,7 +681,7 @@ export class Dashboard implements OnInit {
             .slice(0, 3)
             .map((emp) => ({
               action: 'New Employee Added',
-              details: `${emp.firstName} ${emp.lastName} | ${
+              details: `${emp.name}  | ${
                 emp.email || 'No email'
               }`,
               time: new Date(emp.createdDateTime || new Date()),
