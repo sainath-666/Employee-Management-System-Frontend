@@ -15,13 +15,13 @@ export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: Login },
   { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
-  { path: 'leave-form', component: LeaveForm, canActivate: [RoleGuard], data: { role: 2 } },
-  { path: 'payslip-list', component: PayslipListComponent, canActivate:  [RoleGuard], data: { role: [2,9,10] } },
-  { path: 'employee-form', component: EmployeeForm, canActivate:  [RoleGuard], data: { role: 10 } },
-  { path: 'employee-form/:id', component: EmployeeForm, canActivate:  [RoleGuard], data: { role: 10 } },
-  { path: 'leave-management', component:LeaveManagement , canActivate:[RoleGuard], data: { role: [9,10] } },
-  { path: 'payslip-form', component: PayslipForm, canActivate:  [RoleGuard], data: { role: 9 }},
-  { path: 'department-form', component: DepartmentForm, canActivate:  [RoleGuard], data: { role: 2 } },
-  { path : 'emp-details',component:EmployeeDetails,canActivate:[RoleGuard], data: { role: [2,9,10] }},
-  { path: 'employee-view', component: EmployeeViewComponent, canActivate:  [RoleGuard], data: { role: [9,10] } }
+   { path: 'leave-form', component: LeaveForm, canActivate: [authGuard] },
+  { path: 'payslip-list', component: PayslipListComponent, canActivate: [authGuard] },
+  { path: 'employee-form', component: EmployeeForm, canActivate: [authGuard] },
+  { path: 'employee-form/:id', component: EmployeeForm, canActivate: [authGuard] },
+  { path: 'leave-management', component:LeaveManagement , canActivate: [authGuard] },
+  { path: 'payslip-form', component: PayslipForm, canActivate: [authGuard] },
+  { path: 'department-form', component: DepartmentForm, canActivate: [authGuard ] },
+  { path : 'emp-details',component:EmployeeDetails,canActivate:[authGuard]},
+  { path: 'employee-view', component: EmployeeViewComponent, canActivate: [authGuard] }
 ];
