@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { EmployeeService } from '../../services/employee.service';
 
 export interface Employee {
@@ -29,7 +29,8 @@ export class EmployeeViewComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private employeeService: EmployeeService,
-    private location:Location
+    private location:Location,
+    private router:Router
   ) {}
 
   ngOnInit(): void {
@@ -44,6 +45,13 @@ export class EmployeeViewComponent implements OnInit {
   goBack(): void {
     this.location.back();  // 🔹 Goes to previous page in history
   }
+
+  editEmployee(employeeId?: number) {
+  if (employeeId !== undefined) {
+    this.router.navigate(['/employee-form',employeeId]);
+  }
+}
+
 
   loadEmployeeDetails(id: number): void {
     this.employeeService.getEmployeeById(id).subscribe({
