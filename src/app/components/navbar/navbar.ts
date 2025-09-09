@@ -84,7 +84,7 @@ export class Navbar implements AfterViewInit, OnInit {
 
   viewProfile(): void {
     if (this.employeeId) {
-      this.router.navigate(['/employee-form', this.employeeId]);
+      this.router.navigate(['/employee-view'], { queryParams: { id: this.employeeId } });
     }
   }
 
